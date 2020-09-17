@@ -83,7 +83,7 @@ import { scan } from "rxjs/operators";
 
 const o = of({ msg: 'Hello' }, { msg: 'World' });
 const p = proxify(o);
-o.msg.pipe(scan((a,c)=> a + c)).subscribe(console.log);
+p.msg.pipe(scan((a,c)=> a + c)).subscribe(console.log);
 
 // equivalent to
 // o.pipe(pluck('msg'), scan((a,c)=> a + c)).subscribe(console.log);
