@@ -28,6 +28,14 @@ stream.msg.subscribe(…);
 
 Roughly speaking, Proxify turns your `Observable<O>` into `Observable<O> & O<Observable<O[keyof O]>>`, recursively. Letting you access Observable API as well as pluck props / methods from the stream!
 
+## 📦 Install
+
+```
+npm i rxjs-proxify
+```
+
+or [try it online](https://stackblitz.com/edit/rxjs-proxify-repl?file=index.ts)!
+
 ## 📖 Examples
 
 ### Basic usage
