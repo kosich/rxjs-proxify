@@ -1,9 +1,10 @@
 <div align="center">
   <h1>
     <br/>
-    👓
+    { 👓 }
     <br/>
-    <sub><sub>A recursive Proxy to access values on a Stream</sub></sub>
+    <sub><sub>Turns a Stream of Objects</sub></sub>
+    <sub><sub>Into an Object of Streams</sub></sub>
     <br/>
     <br/>
     <a href="https://www.npmjs.com/package/rxjs-proxify"><img src="https://img.shields.io/npm/v/rxjs-proxify" alt="NPM"></a>
