@@ -3,8 +3,7 @@
     <br/>
     { 👓 }
     <br/>
-    <sub><sub>Turns a Stream of Objects</sub></sub>
-    <sub><sub>Into an Object of Streams</sub></sub>
+    <sub><sub>Turns a Stream of Objects into an Object of Streams</sub></sub>
     <br/>
     <br/>
     <a href="https://www.npmjs.com/package/rxjs-proxify"><img src="https://img.shields.io/npm/v/rxjs-proxify" alt="NPM"></a>
