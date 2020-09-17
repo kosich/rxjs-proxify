@@ -9,7 +9,7 @@
         "downlevelIteration": true,
         "noImplicitAny": false,
         "noUnusedLocals": false,
-        "lib": ["es5", "dom", "dom.iterable"],
+        "lib": ["es5"],
         "types": ["node"]
     }
 }
