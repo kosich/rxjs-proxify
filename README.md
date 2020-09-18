@@ -47,7 +47,7 @@ import { of } from "rxjs";
 
 const o = of({ msg: 'Hello' }, { msg: 'World' });
 const p = proxify(o);
-o.msg.subscribe(console.log);
+p.msg.subscribe(console.log);
 
 // equivalent to
 // o.pipe(pluck('msg')).subscribe(console.log);
