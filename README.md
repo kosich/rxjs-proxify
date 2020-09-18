@@ -18,9 +18,8 @@
 Access values inside RxJS Observables as if they were directly available on the stream, with good TypeScript support!
 
 ```ts
-// turn a
 stream.pipe(pluck('msg')).subscribe(…);
-// into
+// turn ↑ into ↓
 stream.msg.subscribe(…);
 ```
 
