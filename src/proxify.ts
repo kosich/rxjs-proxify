@@ -32,10 +32,15 @@ export function proxify<O>(o: Observable<O>): Proxify<O> {
                     map((f) => {
                         // TODO: properly type it
                         if (typeof f == 'function') {
-                            const result = f(...argumentsList);
+                            const result = Reflect.apply(
+                                f,
+                                void 0,
+                                argumentsList,
+                            );
                             return result;
                         }
 
+                        // non-function or null values are skipped
                         return null;
                     }),
                 ),
@@ -46,9 +51,9 @@ export function proxify<O>(o: Observable<O>): Proxify<O> {
         get(_, prop: keyof O & keyof Observable<O>, receiver) {
             // shortcut for pipe
             if (prop == 'pipe') {
-                return (...args) => {
+                return function () {
                     const pipe = Reflect.get(o, prop, receiver);
-                    const r = Reflect.apply(pipe, o, args);
+                    const r = Reflect.apply(pipe, o, arguments);
                     return proxify(r);
                 };
             }
@@ -63,10 +68,13 @@ export function proxify<O>(o: Observable<O>): Proxify<O> {
                 o.pipe(
                     map((v) => {
                         if (v == null) {
+                            // similar to pluck, we skip nullish values
                             return v;
                         } else if (typeof v[prop] == 'function') {
+                            // we should keep the context for methods
                             return (v[prop] as any).bind(v);
                         } else {
+                            // pluck
                             return v[prop];
                         }
                     }),
