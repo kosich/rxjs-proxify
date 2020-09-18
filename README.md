@@ -3,7 +3,7 @@
     <br/>
     { 👓 }
     <br/>
-    <sub><sub>Turns a Stream of Objects into an Object of Streams</sub></sub>
+    <sub><sub>Turn a Stream of Objects into an Object of Streams</sub></sub>
     <br/>
     <br/>
     <a href="https://www.npmjs.com/package/rxjs-proxify"><img src="https://img.shields.io/npm/v/rxjs-proxify" alt="NPM"></a>
@@ -54,7 +54,9 @@ o.msg.subscribe(console.log);
 // o.pipe(pluck('msg')).subscribe(console.log);
 ```
 
-### With JS Destructuring
+### With JS destructuring
+
+Convenient
 
 ```ts
 import { proxify } from "rxjs-proxify";
@@ -123,6 +125,10 @@ p.msg()[0].subscribe(console.log);
 
 ## 🤝 Want to collaborate on this package?
 
-I'll be happy to see your contribution! Please create an issue before submiting a PR — we'll be able to discuss it first!
+I'll be glad to see your contribution!
+
+Please create an issue before submiting a PR — we'll be able to discuss it first!
+
+See you!
 
 ## Enjoy 🙂
