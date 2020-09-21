@@ -95,9 +95,9 @@ describe('Proxify', () => {
             expect(observer.complete.mock.calls.length).toBe(1);
         });
 
-        // This test fails on typecheck due to a being
+        // This test fails on typecheck due to `a` being
         //     (x: any, y: any) => { b: any }
-        // any type on b seem to corrupt typings
+        // any type on b seem to corrupt further typings
         // TODO: improve typings
         // it('should call proxify on result w/ any', () => {
         //     const a = (x: any, y: any) => ({ b: x + y });
@@ -107,5 +107,14 @@ describe('Proxify', () => {
         //     expect(observer.next.mock.calls).toEqual([[1], [2], [3]])
         //     expect(observer.complete.mock.calls.length).toBe(1);
         // });
+
+        // This test fails on typecheck:
+        // proxify(fn)() -- is not Proxify
+        // test('Fn should be of type Proxify', () => {
+        //     const o = of(() => 'Hello', () => 'World');
+        //     const p = proxify(o);
+        //     p.pipe(filter(x => x)).subscribe(f => f());
+        // });
+
     });
 });
