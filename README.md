@@ -25,7 +25,7 @@ stream.msg.subscribe(…);
 
 😲 !
 
-Roughly speaking, Proxify turns your `Observable<O>` into `Observable<O> & O<Observable<O[keyof O]>>`, recursively. Letting you access Observable API as well as pluck props / methods from the stream!
+Roughly speaking, Proxify turns your `Observable<{ title: string }>` into `Observable<{ title: string }> & { title: Observable<string> }`. And it does it recursively. Letting you access Observable API as well as pluck props & methods from any depth of the stream!
 
 ## 📦 Install
 
@@ -55,7 +55,7 @@ p.msg.subscribe(console.log);
 
 ### With JS destructuring
 
-Convenient
+Convenient stream props splitting
 
 ```ts
 import { proxify } from "rxjs-proxify";
@@ -71,6 +71,12 @@ status.subscribe(console.log);
 // const status = o.pipe(pluck('status'));
 // msg.subscribe(console.log);
 // status.subscribe(console.log);
+```
+
+**⚠️ WARNING:** as shown in "equivalent" comment, this operation creates several Observables from the source Observable. Which means that if your source is _cold_ — then you might get undesired subscriptions. This is a well-known nuance of working with Observables. To avoid this, you can use a multicasting operator on source before applying `proxify`, e.g. with [`shareReplay`](https://rxjs.dev/api/operators/shareReplay):
+
+```ts
+const { msg, status } = proxify(o.pipe(shareReplay(1)));
 ```
 
 ### With pipe
@@ -122,12 +128,12 @@ p.msg()[0].subscribe(console.log);
 // o.pipe(map(x => x?.map()), pluck(0)).subscribe(console.log);
 ```
 
-## 🤝 Want to collaborate on this package?
+## 🤝 Want to contribute to this project?
 
-I'll be glad to see your contribution!
+That will be awesome!
 
 Please create an issue before submiting a PR — we'll be able to discuss it first!
 
-See you!
+Thanks!
 
 ## Enjoy 🙂
