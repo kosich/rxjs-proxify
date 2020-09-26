@@ -95,6 +95,12 @@ describe('Proxify', () => {
             expect(observer.complete.mock.calls.length).toBe(1);
         });
 
+        it('should return same Proxy for each property access', () => {
+            const o = of({ a: 42 });
+            const p = proxify(o);
+            expect(p.a === p.a).toBe(true);
+        });
+
         // This test fails on typecheck due to `a` being
         //     (x: any, y: any) => { b: any }
         // any type on b seem to corrupt further typings
@@ -115,6 +121,5 @@ describe('Proxify', () => {
         //     const p = proxify(o);
         //     p.pipe(filter(x => x)).subscribe(f => f());
         // });
-
     });
 });

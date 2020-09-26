@@ -23,6 +23,14 @@ const OBSERVABLE_INSTANCE_PROP_KEYS = [
 const stubFn = () => void 0;
 
 export function proxify<O>(o: Observable<O>): Proxify<O> {
+    // we need to preserve property proxies, so that
+    // ```ts
+    // let o = of({ a: 42 });
+    // let p = proxify(o);
+    // assert(p.a === p.a);
+    // ```
+    const proxyForPropertyCache = new Map<keyof O, Proxify<O[keyof O]>>();
+
     return (new Proxy(stubFn, {
         // call result = O.fn in Observable<O>
         // and make it Observable<result>
@@ -63,8 +71,12 @@ export function proxify<O>(o: Observable<O>): Proxify<O> {
                 return Reflect.get(o, prop, receiver);
             }
 
+            if (proxyForPropertyCache.has(prop)) {
+                return proxyForPropertyCache.get(prop);
+            }
+
             // return proxified sub-property
-            return proxify(
+            const subproxy = proxify(
                 o.pipe(
                     map((v) => {
                         if (v == null) {
@@ -78,8 +90,11 @@ export function proxify<O>(o: Observable<O>): Proxify<O> {
                             return v[prop];
                         }
                     }),
-                ),
+                ) as Observable<O[typeof prop]>,
             );
+
+            proxyForPropertyCache.set(prop, subproxy);
+            return subproxy;
         },
     }) as unknown) as Proxify<O>;
 }
