@@ -111,7 +111,7 @@ describe('Proxify', () => {
         });
 
         it('should pass the args', () => {
-            const a = (x, y) => x + y;
+            const a = (x: number, y: number) => x + y;
             const o = of({ a }, { a }, { a });
             const p = proxify(o);
             sub = p.a(1, 1).subscribe(observer);
@@ -136,6 +136,29 @@ describe('Proxify', () => {
             expect(p.a === p.a).toBe(true);
         });
 
+        // TS:
+        // proxify(fn)() -- should be Proxify
+        test('Fn call result should be of type Proxify', () => {
+            const o = of(() => 'Hello', () => 'World');
+            const p = proxify(o);
+            // fn call
+            p().subscribe((s: string) => observer.next(s));
+            expect(observer.next).toHaveBeenCalledWith('Hello');
+            expect(observer.next).toHaveBeenCalledWith('World');
+            observer.next.mockClear();
+            // mapped
+            p.pipe(map(f => f())).subscribe(observer);
+            expect(observer.next).toHaveBeenCalledWith('Hello');
+            expect(observer.next).toHaveBeenCalledWith('World');
+        });
+
+        // TYPES: proxify(of('a', 'b')).length -- should be Proxify
+        // test('elemental types should be Proxify', () => {
+        //     const o = of('Hello', 'World');
+        //     const p = proxify(o);
+        //     p.length.subscribe(console.log);
+        // });
+
         // This test fails on typecheck due to `a` being
         //     (x: any, y: any) => { b: any }
         // any type on b seem to corrupt further typings
@@ -147,14 +170,6 @@ describe('Proxify', () => {
         //     p.a(1, 1).b.subscribe(observer);
         //     expect(observer.next.mock.calls).toEqual([[1], [2], [3]])
         //     expect(observer.complete.mock.calls.length).toBe(1);
-        // });
-
-        // This test fails on typecheck:
-        // proxify(fn)() -- is not Proxify
-        // test('Fn should be of type Proxify', () => {
-        //     const o = of(() => 'Hello', () => 'World');
-        //     const p = proxify(o);
-        //     p.pipe(filter(x => x)).subscribe(f => f());
         // });
     });
 });

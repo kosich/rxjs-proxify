@@ -102,15 +102,20 @@ export function proxify<O>(o: Observable<O>): Proxify<O> {
 export type Proxify<O> =
     // O is function ?
     O extends (...args: any[]) => infer R
-        ? // make it callable
-          (
-              ...args: Parameters<O>
-          ) => Proxify<R> & ProxiedPipeObservable<O> & Proxy<O>
-        : // simple proxy otherwise
-          ProxiedPipeObservable<O> & Proxy<O>;
+        ? Proxy <O> & ICallableProxiedObservable<O, R>
+        : Proxy <O> & IProxiedObservable<O>
+        ;
 
-// RxJS Observable with pipe method, returning Proxify
-export type ProxiedPipeObservable<O> = Omit<Observable<O>, 'pipe'> & {
+// Basic proxy with props as proxify
+export type Proxy<O> = { [P in keyof O]: Proxify<O[P]> };
+
+// Callable Proxied Observable
+interface ICallableProxiedObservable<O extends (...args: any[]) => R, R> extends IProxiedObservable<O> {
+    (...args: Parameters<O>): Proxify<R>;
+}
+
+// Observable with pipe method, returning Proxify
+interface IProxiedObservable<O> extends Observable<O> {
     pipe(): Proxify<O>;
     pipe<A>(op1: OperatorFunction<O, A>): Proxify<A>;
     pipe<A, B>(
@@ -186,5 +191,3 @@ export type ProxiedPipeObservable<O> = Omit<Observable<O>, 'pipe'> & {
         ...operations: OperatorFunction<any, any>[]
     ): Proxify<{}>;
 };
-
-export type Proxy<O> = { [P in keyof O]: Proxify<O[P]> };
