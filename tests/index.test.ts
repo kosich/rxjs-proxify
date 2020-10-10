@@ -135,7 +135,9 @@ describe('Proxify', () => {
             const p = proxify(o);
             expect(p.a === p.a).toBe(true);
         });
+    });
 
+    describe('Types', () => {
         // TS:
         // proxify(fn)() -- should be Proxify
         test('Fn call result should be of type Proxify', () => {
@@ -153,23 +155,22 @@ describe('Proxify', () => {
         });
 
         // TYPES: proxify(of('a', 'b')).length -- should be Proxify
-        // test('elemental types should be Proxify', () => {
-        //     const o = of('Hello', 'World');
-        //     const p = proxify(o);
-        //     p.length.subscribe(console.log);
-        // });
+        test('atomic props should be Proxify', () => {
+            const o = of('Hi', 'World');
+            const p = proxify(o);
+            // crazy subtype
+            p.length.toString()[0].subscribe(observer);
+            expect(observer.next).toHaveBeenCalledWith('2');
+            expect(observer.next).toHaveBeenCalledWith('5');
+        });
 
-        // This test fails on typecheck due to `a` being
-        //     (x: any, y: any) => { b: any }
-        // any type on b seem to corrupt further typings
-        // TODO: improve typings
-        // it('should call proxify on result w/ any', () => {
-        //     const a = (x: any, y: any) => ({ b: x + y });
-        //     const o = of({ a }, { a }, { a });
-        //     const p = proxify(o);
-        //     p.a(1, 1).b.subscribe(observer);
-        //     expect(observer.next.mock.calls).toEqual([[1], [2], [3]])
-        //     expect(observer.complete.mock.calls.length).toBe(1);
-        // });
+        it('should call proxify on result w/ any', () => {
+            const a = (x: any, y: any) => ({ b: x + y });
+            const o = of({ a }, { a }, { a });
+            const p = proxify(o);
+            p.a(1, 1).b.subscribe(observer);
+            expect(observer.next.mock.calls).toEqual([[2], [2], [2]])
+            expect(observer.complete.mock.calls.length).toBe(1);
+        });
     });
 });
