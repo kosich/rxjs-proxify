@@ -39,7 +39,7 @@ describe('Proxify', () => {
             sub = mapped.subscribe(observer);
             expect(observer.next.mock.calls).toEqual([['1.'], ['2.'], ['3.']]);
             expect(observer.complete.mock.calls.length).toBe(1);
-        })
+        });
 
         test('piping operator', () => {
             const o = of(1, 2, 3);
@@ -49,8 +49,19 @@ describe('Proxify', () => {
             sub = mapped.subscribe(observer);
             expect(observer.next.mock.calls).toEqual([['1.'], ['2.'], ['3.']]);
             expect(observer.complete.mock.calls.length).toBe(1);
-        })
-    })
+        });
+    });
+
+    describe('Preserve values', () => {
+        it('should return same Proxy for each property access', () => {
+            const o = of({ a: 42 });
+            const p = proxify(o);
+            expect(p.a === p.a).toBe(true);
+            expect(p.pipe(map(x => x)) !== p.pipe(map(x => x))).toBe(true);
+            expect(p.pipe(map(x => x)).a !== p.pipe(map(x => x)).a).toBe(true);
+            expect(p.a.pipe(map(x => x)) !== p.a.pipe(map(x => x))).toBe(true);
+        });
+    });
 
     describe('Pluck', () => {
         test('One level', () => {
@@ -128,12 +139,6 @@ describe('Proxify', () => {
                 .subscribe(observer);
             expect(observer.next.mock.calls).toEqual([[2], [4], [6]]);
             expect(observer.complete.mock.calls.length).toBe(1);
-        });
-
-        it('should return same Proxy for each property access', () => {
-            const o = of({ a: 42 });
-            const p = proxify(o);
-            expect(p.a === p.a).toBe(true);
         });
     });
 
