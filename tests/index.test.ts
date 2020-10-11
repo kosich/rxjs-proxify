@@ -140,7 +140,7 @@ describe('Proxify', () => {
     describe('Types', () => {
         // TS:
         // proxify(fn)() -- should be Proxify
-        test('Fn call result should be of type Proxify', () => {
+        test('fn call result type', () => {
             const o = of(() => 'Hello', () => 'World');
             const p = proxify(o);
             // fn call
@@ -155,7 +155,7 @@ describe('Proxify', () => {
         });
 
         // TYPES: proxify(of('a', 'b')).length -- should be Proxify
-        test('atomic props should be Proxify', () => {
+        test('atomic props should be of type Proxify', () => {
             const o = of('Hi', 'World');
             const p = proxify(o);
             // crazy subtype
@@ -164,7 +164,65 @@ describe('Proxify', () => {
             expect(observer.next).toHaveBeenCalledWith('5');
         });
 
-        it('should call proxify on result w/ any', () => {
+        test('Classes', () => {
+            class A {
+                constructor(protected one: number){}
+
+                add(){
+                    return new A(this.one + 1);
+                }
+
+                read(){
+                    return this.one;
+                }
+            }
+
+            class B extends A {
+                minus(){
+                    return new B(this.one - 1);
+                }
+            }
+
+            const bs = of(new B(3), new B(7));
+            const p = proxify(bs);
+            p.minus().minus().add().read().subscribe(observer);
+            expect(observer.next.mock.calls).toEqual([[2], [6]])
+            expect(observer.complete.mock.calls.length).toBe(1);
+        });
+
+        describe('Arrays', () =>{
+            it('should map', () => {
+                proxify(of([1, 2, 3]))
+                    .map(x => x + 1)
+                    // NOTE: This currently returns Proxify<unknown>
+                    // TODO: fix
+                    .subscribe(observer);
+
+                expect(observer.next.mock.calls).toEqual([[[2, 3, 4]]])
+                expect(observer.complete.mock.calls.length).toBe(1);
+            });
+
+            it('should filter', () => {
+                proxify(of([1, 2, 3]))
+                    .filter(x => x != 2)
+                    [1]
+                    .subscribe(observer)
+
+                expect(observer.next.mock.calls).toEqual([[3]]);
+                expect(observer.complete.mock.calls.length).toBe(1);
+            });
+
+            // TODO: doesn't handle every atm
+            // it('should every', () => {
+            //     proxify(of([1, 2, 3]))
+            //         .every(x => x != 2)
+            //         .subscribe(observer)
+            //     expect(observer.next.mock.calls).toEqual([[3]]);
+            //     expect(observer.complete.mock.calls.length).toBe(1);
+            // })
+        });
+
+        it('should apply type on result w/ any', () => {
             const a = (x: any, y: any) => ({ b: x + y });
             const o = of({ a }, { a }, { a });
             const p = proxify(o);

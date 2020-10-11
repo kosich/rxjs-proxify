@@ -100,15 +100,17 @@ export function proxify<O>(o: Observable<O>): Proxify<O> {
 }
 
 export type Proxify<O> =
-    // O is function ?
-    O extends (...args: any[]) => infer R
-        ? Proxy<O> & ICallableProxiedObservable<O, R>
-        : Proxy<O> & IProxiedObservable<O>
-        ;
+    Proxy<O> & (
+        O extends (...args: any[]) => infer R
+        ? ICallableProxiedObservable<O, R>
+        : IProxiedObservable<O>
+    );
 
 // Basic proxy with props as proxify
 type Proxy<O> =
-      O extends boolean
+      O extends null
+    ? {}
+    : O extends boolean
     ? { [P in keyof Boolean]: Proxify<Boolean[P]> }
     : O extends string
     ? { [P in keyof String]: Proxify<String[P]> }
@@ -118,12 +120,15 @@ type Proxy<O> =
     ? { [P in keyof BigInt]: Proxify<BigInt[P]> }
     : O extends symbol
     ? { [P in keyof Symbol]: Proxify<Symbol[P]> }
-    // Object
+    // special hack for array type
+    : O extends (infer R)[]
+    ? { [P in keyof R[]]: Proxify<R[][P]> }
+    // any object
     : { [P in keyof O]: Proxify<O[P]> };
 
 // Callable Proxied Observable
-interface ICallableProxiedObservable<O extends (...args: any[]) => R, R> extends IProxiedObservable<O> {
-    (...args: Parameters<O>): Proxify<R>;
+interface ICallableProxiedObservable<F extends (...args: any[]) => any, R> extends IProxiedObservable<F> {
+    (...args: Parameters<F>): Proxify<R>;
 }
 
 // Observable with pipe method, returning Proxify
