@@ -19,10 +19,10 @@ describe('Proxify', () => {
     });
 
     afterEach(() => {
-        if (sub){
+        if (sub) {
             sub.unsubscribe();
         }
-    })
+    });
 
     describe('Observable API', () => {
         test('isObservable should be true', () => {
@@ -75,7 +75,7 @@ describe('Proxify', () => {
         test('One level w/ pipe', () => {
             const o = of({ a: 1 }, { a: 2 }, { a: 3 });
             const p = proxify(o);
-            sub = p.pipe(filter((x) => x.a > 1)).a.subscribe(observer);
+            sub = p.pipe(filter(x => x.a > 1)).a.subscribe(observer);
             expect(observer.next.mock.calls).toEqual([[2], [3]]);
             expect(observer.complete.mock.calls.length).toBe(1);
         });
@@ -89,13 +89,9 @@ describe('Proxify', () => {
         });
 
         test('Two levels w/ pipe', () => {
-            const o = of(
-                { a: { b: 1, ok: true } },
-                { a: { b: 2, ok: false } },
-                { a: { b: 3, ok: true } },
-            );
+            const o = of({ a: { b: 1, ok: true } }, { a: { b: 2, ok: false } }, { a: { b: 3, ok: true } });
             const p = proxify(o);
-            sub = p.a.pipe(filter((x) => x.ok)).b.subscribe(observer);
+            sub = p.a.pipe(filter(x => x.ok)).b.subscribe(observer);
             expect(observer.next.mock.calls).toEqual([[1], [3]]);
             expect(observer.complete.mock.calls.length).toBe(1);
         });
@@ -134,7 +130,8 @@ describe('Proxify', () => {
             const a = (x: number, y: number) => ({ b: x + y });
             const o = of({ a }, { a }, { a });
             const p = proxify(o);
-            sub = p.a(1, 1)
+            sub = p
+                .a(1, 1)
                 .b.pipe(scan((acc, curr) => acc + curr))
                 .subscribe(observer);
             expect(observer.next.mock.calls).toEqual([[2], [4], [6]]);
@@ -146,7 +143,10 @@ describe('Proxify', () => {
         // TS:
         // proxify(fn)() -- should be Proxify
         test('fn call result type', () => {
-            const o = of(() => 'Hello', () => 'World');
+            const o = of(
+                () => 'Hello',
+                () => 'World',
+            );
             const p = proxify(o);
             // fn call
             p().subscribe((s: string) => observer.next(s));
@@ -171,19 +171,19 @@ describe('Proxify', () => {
 
         test('Classes', () => {
             class A {
-                constructor(protected one: number){}
+                constructor(protected one: number) {}
 
-                add(){
+                add() {
                     return new A(this.one + 1);
                 }
 
-                read(){
+                read() {
                     return this.one;
                 }
             }
 
             class B extends A {
-                minus(){
+                minus() {
                     return new B(this.one - 1);
                 }
             }
@@ -191,11 +191,11 @@ describe('Proxify', () => {
             const bs = of(new B(3), new B(7));
             const p = proxify(bs);
             p.minus().minus().add().read().subscribe(observer);
-            expect(observer.next.mock.calls).toEqual([[2], [6]])
+            expect(observer.next.mock.calls).toEqual([[2], [6]]);
             expect(observer.complete.mock.calls.length).toBe(1);
         });
 
-        describe('Arrays', () =>{
+        describe('Arrays', () => {
             it('should map', () => {
                 proxify(of([1, 2, 3]))
                     .map(x => x + 1)
@@ -203,15 +203,14 @@ describe('Proxify', () => {
                     // TODO: fix
                     .subscribe(observer);
 
-                expect(observer.next.mock.calls).toEqual([[[2, 3, 4]]])
+                expect(observer.next.mock.calls).toEqual([[[2, 3, 4]]]);
                 expect(observer.complete.mock.calls.length).toBe(1);
             });
 
             it('should filter', () => {
                 proxify(of([1, 2, 3]))
-                    .filter(x => x != 2)
-                    [1]
-                    .subscribe(observer)
+                    .filter(x => x != 2)[1]
+                    .subscribe(observer);
 
                 expect(observer.next.mock.calls).toEqual([[3]]);
                 expect(observer.complete.mock.calls.length).toBe(1);
@@ -232,7 +231,7 @@ describe('Proxify', () => {
             const o = of({ a }, { a }, { a });
             const p = proxify(o);
             p.a(1, 1).b.subscribe(observer);
-            expect(observer.next.mock.calls).toEqual([[2], [2], [2]])
+            expect(observer.next.mock.calls).toEqual([[2], [2], [2]]);
             expect(observer.complete.mock.calls.length).toBe(1);
         });
     });
