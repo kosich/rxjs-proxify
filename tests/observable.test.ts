@@ -210,8 +210,8 @@ describe('Proxify', () => {
         expect(observer.complete.mock.calls.length).toBe(1);
       });
 
-      // TODO: doesn't handle every atm
-      // it('should every', () => {
+      // TODO: TypeScript: typing doesn't handle methods with overloads atm
+      // it('should type every', () => {
       //     proxify(of([1, 2, 3]))
       //         .every(x => x != 2)
       //         .subscribe(observer)

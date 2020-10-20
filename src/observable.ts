@@ -1,8 +1,9 @@
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ObservableProxy } from './proxify.type';
 import { OBSERVABLE_INSTANCE_PROP_KEYS, stubFn } from './shared';
+import { ObservableProxy } from './types';
 
+export { ObservableProxy };
 export function proxify<O>(o: Observable<O>): ObservableProxy<O> {
   // we need to preserve property proxies, so that
   // ```ts

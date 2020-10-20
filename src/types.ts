@@ -1,14 +1,31 @@
-import { Observable, OperatorFunction } from 'rxjs';
+/**
+ * this file is identical to proxify.type.ts
+ * except it exports under different name
+ * and has next,error,complete on ProxiedSubject
+ */
+import { Observable, Observer, OperatorFunction } from 'rxjs';
 
 export type ObservableProxy<O> =
-  ValueProxy<O> & (
+  ValueProxy<O, false> & (
     O extends (...args: infer P) => infer R
     ? ICallableProxiedObservable<O, P, R>
     : IProxiedObservable<O>
   );
 
+export type StateProxy<O> =
+  ValueProxy<O, true> & (
+    O extends (...args: infer P) => infer R
+    ? ICallableProxiedObservable<O, P, R>
+    : IProxiedSubject<O>
+  );
+
+type TProxy<O, T extends boolean> =
+  T extends true
+  ? StateProxy<O>
+  : ObservableProxy<O>
+
 // Basic proxy with props as proxify
-type ValueProxy<O> =
+type ValueProxy<O, T extends boolean> =
   O extends null
   ? {}
   : O extends boolean
@@ -23,15 +40,22 @@ type ValueProxy<O> =
   ? { [P in keyof Symbol]: ObservableProxy<Symbol[P]> }
   // special hack for array type
   : O extends (infer R)[]
-  ? { [P in keyof R[]]: ObservableProxy<R[][P]> }
+  ? { [P in keyof R[]]: TProxy<R[][P], T> }
   // any object
-  : { [P in keyof O]: ObservableProxy<O[P]> };
+  : { [P in keyof O]: TProxy<O[P], T> };
 
 // Callable Proxied Observable
 type BasicFn = (...args: any[]) => any;
 
 interface ICallableProxiedObservable<F extends BasicFn, P1 extends any[], R1> extends IProxiedObservable<F> {
   (...args: P1): ObservableProxy<R1>;
+}
+
+// Subject API
+interface IProxiedSubject<O> extends IProxiedObservable<O>, Observer<O> {
+  next(value: O): void;
+  error(err: any): void;
+  complete(): void;
 }
 
 // Observable with pipe method, returning Proxify
