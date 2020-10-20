@@ -34,6 +34,14 @@ function getSetProxy<O>(s: Observable<O>, ps: Path, getter: Getter, setter: Sett
       //   }
       // }
 
+      if ('value' == p) {
+        return getter(ps);
+      }
+
+      if ('getValue' == p){
+        return () => getter(ps);
+      }
+
       // Observer/Subject-like pushing to stream
       if ('next' == p) {
         return function next(value) {

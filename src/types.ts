@@ -1,31 +1,45 @@
-/**
- * this file is identical to proxify.type.ts
- * except it exports under different name
- * and has next,error,complete on ProxiedSubject
- */
 import { Observable, Observer, OperatorFunction } from 'rxjs';
 
+// Proxy kinds {{{
 export type ObservableProxy<O> =
-  ValueProxy<O, false> & (
+  ValueProxy<O, ProxyKind.Observable> & (
     O extends (...args: infer P) => infer R
     ? ICallableProxiedObservable<O, P, R>
     : IProxiedObservable<O>
   );
 
-export type StateProxy<O> =
-  ValueProxy<O, true> & (
+export type SubjectProxy<O> =
+  ValueProxy<O, ProxyKind.Subject> & (
     O extends (...args: infer P) => infer R
     ? ICallableProxiedObservable<O, P, R>
     : IProxiedSubject<O>
   );
 
-type TProxy<O, T extends boolean> =
-  T extends true
+export type StateProxy<O> =
+  ValueProxy<O, ProxyKind.State> & (
+    O extends (...args: infer P) => infer R
+    ? ICallableProxiedObservable<O, P, R>
+    : IProxiedState<O>
+  );
+
+// helper to distinguish root types
+type TProxy<O, K extends ProxyKind> =
+  K extends ProxyKind.State
   ? StateProxy<O>
+  : K extends ProxyKind.Subject
+  ? SubjectProxy<O>
+  // T == ProxyType.Observable
   : ObservableProxy<O>
 
+enum ProxyKind {
+  Observable,
+  Subject,
+  State
+};
+// }}}
+
 // Basic proxy with props as proxify
-type ValueProxy<O, T extends boolean> =
+type ValueProxy<O, K extends ProxyKind> =
   O extends null
   ? {}
   : O extends boolean
@@ -40,15 +54,21 @@ type ValueProxy<O, T extends boolean> =
   ? { [P in keyof Symbol]: ObservableProxy<Symbol[P]> }
   // special hack for array type
   : O extends (infer R)[]
-  ? { [P in keyof R[]]: TProxy<R[][P], T> }
+  ? { [P in keyof R[]]: TProxy<R[][P], K> }
   // any object
-  : { [P in keyof O]: TProxy<O[P], T> };
+  : { [P in keyof O]: TProxy<O[P], K> };
 
 // Callable Proxied Observable
 type BasicFn = (...args: any[]) => any;
 
 interface ICallableProxiedObservable<F extends BasicFn, P1 extends any[], R1> extends IProxiedObservable<F> {
   (...args: P1): ObservableProxy<R1>;
+}
+
+// State API
+interface IProxiedState<O> extends IProxiedSubject<O> {
+  readonly value: O;
+  getValue(): O;
 }
 
 // Subject API

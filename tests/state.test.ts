@@ -100,10 +100,6 @@ describe('State', () => {
     state.next({ a: '🐇', z: '☁️' })
     expect(observer.next).toHaveBeenCalledWith({ a: '🐇', z: '☁️' });
 
-    // read current values
-    // TODO: TS does not supported yet
-    // expect(state.z + state.a).toBe('💨🛸');
-
     // and then…
     state.z.next('🌙'); //> { a:🐇  z:🌙 }
     // TODO: TS does not supported yet
@@ -111,6 +107,7 @@ describe('State', () => {
     state.z.next('🛸')  //> { a:🐇👀 z:🛸 }
     state.a.next('💨'); //> { a:💨  z:🛸 }
 
-    expect(observer.next).toHaveBeenCalledWith({ a: '💨', z: '🛸' });
+    // read current values
+    expect(state.a.value + state.z.getValue()).toBe('💨🛸');
   })
 });
