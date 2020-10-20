@@ -1,113 +1,113 @@
 import { Observable, OperatorFunction } from 'rxjs';
 
 export type ObservableProxy<O> =
-    ValueProxy<O> & (
-        O extends (...args: infer P) => infer R
-        ? ICallableProxiedObservable<O, P, R>
-        : IProxiedObservable<O>
-    );
+  ValueProxy<O> & (
+    O extends (...args: infer P) => infer R
+    ? ICallableProxiedObservable<O, P, R>
+    : IProxiedObservable<O>
+  );
 
 // Basic proxy with props as proxify
 type ValueProxy<O> =
-      O extends null
-    ? {}
-    : O extends boolean
-    ? { [P in keyof Boolean]: ObservableProxy<Boolean[P]> }
-    : O extends string
-    ? { [P in keyof String]: ObservableProxy<String[P]> }
-    : O extends number
-    ? { [P in keyof Number]: ObservableProxy<Number[P]> }
-    : O extends bigint
-    ? { [P in keyof BigInt]: ObservableProxy<BigInt[P]> }
-    : O extends symbol
-    ? { [P in keyof Symbol]: ObservableProxy<Symbol[P]> }
-    // special hack for array type
-    : O extends (infer R)[]
-    ? { [P in keyof R[]]: ObservableProxy<R[][P]> }
-    // any object
-    : { [P in keyof O]: ObservableProxy<O[P]> };
+  O extends null
+  ? {}
+  : O extends boolean
+  ? { [P in keyof Boolean]: ObservableProxy<Boolean[P]> }
+  : O extends string
+  ? { [P in keyof String]: ObservableProxy<String[P]> }
+  : O extends number
+  ? { [P in keyof Number]: ObservableProxy<Number[P]> }
+  : O extends bigint
+  ? { [P in keyof BigInt]: ObservableProxy<BigInt[P]> }
+  : O extends symbol
+  ? { [P in keyof Symbol]: ObservableProxy<Symbol[P]> }
+  // special hack for array type
+  : O extends (infer R)[]
+  ? { [P in keyof R[]]: ObservableProxy<R[][P]> }
+  // any object
+  : { [P in keyof O]: ObservableProxy<O[P]> };
 
 // Callable Proxied Observable
 type BasicFn = (...args: any[]) => any;
 
 interface ICallableProxiedObservable<F extends BasicFn, P1 extends any[], R1> extends IProxiedObservable<F> {
-    (...args: P1): ObservableProxy<R1>;
+  (...args: P1): ObservableProxy<R1>;
 }
 
 // Observable with pipe method, returning Proxify
 interface IProxiedObservable<O> extends Observable<O> {
-    pipe(): ObservableProxy<O>;
-    pipe<A>(op1: OperatorFunction<O, A>): ObservableProxy<A>;
-    pipe<A, B>(
-        op1: OperatorFunction<O, A>,
-        op2: OperatorFunction<A, B>,
-    ): ObservableProxy<B>;
-    pipe<A, B, C>(
-        op1: OperatorFunction<O, A>,
-        op2: OperatorFunction<A, B>,
-        op3: OperatorFunction<B, C>,
-    ): ObservableProxy<C>;
-    pipe<A, B, C, D>(
-        op1: OperatorFunction<O, A>,
-        op2: OperatorFunction<A, B>,
-        op3: OperatorFunction<B, C>,
-        op4: OperatorFunction<C, D>,
-    ): ObservableProxy<D>;
-    pipe<A, B, C, D, E>(
-        op1: OperatorFunction<O, A>,
-        op2: OperatorFunction<A, B>,
-        op3: OperatorFunction<B, C>,
-        op4: OperatorFunction<C, D>,
-        op5: OperatorFunction<D, E>,
-    ): ObservableProxy<E>;
-    pipe<A, B, C, D, E, F>(
-        op1: OperatorFunction<O, A>,
-        op2: OperatorFunction<A, B>,
-        op3: OperatorFunction<B, C>,
-        op4: OperatorFunction<C, D>,
-        op5: OperatorFunction<D, E>,
-        op6: OperatorFunction<E, F>,
-    ): ObservableProxy<F>;
-    pipe<A, B, C, D, E, F, G>(
-        op1: OperatorFunction<O, A>,
-        op2: OperatorFunction<A, B>,
-        op3: OperatorFunction<B, C>,
-        op4: OperatorFunction<C, D>,
-        op5: OperatorFunction<D, E>,
-        op6: OperatorFunction<E, F>,
-        op7: OperatorFunction<F, G>,
-    ): ObservableProxy<G>;
-    pipe<A, B, C, D, E, F, G, H>(
-        op1: OperatorFunction<O, A>,
-        op2: OperatorFunction<A, B>,
-        op3: OperatorFunction<B, C>,
-        op4: OperatorFunction<C, D>,
-        op5: OperatorFunction<D, E>,
-        op6: OperatorFunction<E, F>,
-        op7: OperatorFunction<F, G>,
-        op8: OperatorFunction<G, H>,
-    ): ObservableProxy<H>;
-    pipe<A, B, C, D, E, F, G, H, I>(
-        op1: OperatorFunction<O, A>,
-        op2: OperatorFunction<A, B>,
-        op3: OperatorFunction<B, C>,
-        op4: OperatorFunction<C, D>,
-        op5: OperatorFunction<D, E>,
-        op6: OperatorFunction<E, F>,
-        op7: OperatorFunction<F, G>,
-        op8: OperatorFunction<G, H>,
-        op9: OperatorFunction<H, I>,
-    ): ObservableProxy<I>;
-    pipe<A, B, C, D, E, F, G, H, I>(
-        op1: OperatorFunction<O, A>,
-        op2: OperatorFunction<A, B>,
-        op3: OperatorFunction<B, C>,
-        op4: OperatorFunction<C, D>,
-        op5: OperatorFunction<D, E>,
-        op6: OperatorFunction<E, F>,
-        op7: OperatorFunction<F, G>,
-        op8: OperatorFunction<G, H>,
-        op9: OperatorFunction<H, I>,
-        ...operations: OperatorFunction<any, any>[]
-    ): ObservableProxy<{}>;
+  pipe(): ObservableProxy<O>;
+  pipe<A>(op1: OperatorFunction<O, A>): ObservableProxy<A>;
+  pipe<A, B>(
+    op1: OperatorFunction<O, A>,
+    op2: OperatorFunction<A, B>,
+  ): ObservableProxy<B>;
+  pipe<A, B, C>(
+    op1: OperatorFunction<O, A>,
+    op2: OperatorFunction<A, B>,
+    op3: OperatorFunction<B, C>,
+  ): ObservableProxy<C>;
+  pipe<A, B, C, D>(
+    op1: OperatorFunction<O, A>,
+    op2: OperatorFunction<A, B>,
+    op3: OperatorFunction<B, C>,
+    op4: OperatorFunction<C, D>,
+  ): ObservableProxy<D>;
+  pipe<A, B, C, D, E>(
+    op1: OperatorFunction<O, A>,
+    op2: OperatorFunction<A, B>,
+    op3: OperatorFunction<B, C>,
+    op4: OperatorFunction<C, D>,
+    op5: OperatorFunction<D, E>,
+  ): ObservableProxy<E>;
+  pipe<A, B, C, D, E, F>(
+    op1: OperatorFunction<O, A>,
+    op2: OperatorFunction<A, B>,
+    op3: OperatorFunction<B, C>,
+    op4: OperatorFunction<C, D>,
+    op5: OperatorFunction<D, E>,
+    op6: OperatorFunction<E, F>,
+  ): ObservableProxy<F>;
+  pipe<A, B, C, D, E, F, G>(
+    op1: OperatorFunction<O, A>,
+    op2: OperatorFunction<A, B>,
+    op3: OperatorFunction<B, C>,
+    op4: OperatorFunction<C, D>,
+    op5: OperatorFunction<D, E>,
+    op6: OperatorFunction<E, F>,
+    op7: OperatorFunction<F, G>,
+  ): ObservableProxy<G>;
+  pipe<A, B, C, D, E, F, G, H>(
+    op1: OperatorFunction<O, A>,
+    op2: OperatorFunction<A, B>,
+    op3: OperatorFunction<B, C>,
+    op4: OperatorFunction<C, D>,
+    op5: OperatorFunction<D, E>,
+    op6: OperatorFunction<E, F>,
+    op7: OperatorFunction<F, G>,
+    op8: OperatorFunction<G, H>,
+  ): ObservableProxy<H>;
+  pipe<A, B, C, D, E, F, G, H, I>(
+    op1: OperatorFunction<O, A>,
+    op2: OperatorFunction<A, B>,
+    op3: OperatorFunction<B, C>,
+    op4: OperatorFunction<C, D>,
+    op5: OperatorFunction<D, E>,
+    op6: OperatorFunction<E, F>,
+    op7: OperatorFunction<F, G>,
+    op8: OperatorFunction<G, H>,
+    op9: OperatorFunction<H, I>,
+  ): ObservableProxy<I>;
+  pipe<A, B, C, D, E, F, G, H, I>(
+    op1: OperatorFunction<O, A>,
+    op2: OperatorFunction<A, B>,
+    op3: OperatorFunction<B, C>,
+    op4: OperatorFunction<C, D>,
+    op5: OperatorFunction<D, E>,
+    op6: OperatorFunction<E, F>,
+    op7: OperatorFunction<F, G>,
+    op8: OperatorFunction<G, H>,
+    op9: OperatorFunction<H, I>,
+    ...operations: OperatorFunction<any, any>[]
+  ): ObservableProxy<{}>;
 };
