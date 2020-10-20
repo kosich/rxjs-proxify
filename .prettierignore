@@ -3,3 +3,4 @@
 /examples
 /dist
 *.md
+types.ts

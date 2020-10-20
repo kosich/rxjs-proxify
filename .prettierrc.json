@@ -1,6 +1,7 @@
 {
-    "singleQuote": true,
-    "trailingComma": "all",
-    "proseWrap": "always",
-    "htmlWhitespaceSensitivity": "ignore"
+  "arrowParens": "avoid",
+  "singleQuote": true,
+  "trailingComma": "all",
+  "proseWrap": "always",
+  "htmlWhitespaceSensitivity": "ignore"
 }

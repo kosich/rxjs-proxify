@@ -19,14 +19,10 @@ export function proxify<O>(o: Observable<O>): ObservableProxy<O> {
     apply(_, __, argumentsList) {
       return proxify(
         o.pipe(
-          map((f) => {
+          map(f => {
             // TODO: properly type it
             if (typeof f == 'function') {
-              const result = Reflect.apply(
-                f,
-                void 0,
-                argumentsList,
-              );
+              const result = Reflect.apply(f, void 0, argumentsList);
               return result;
             }
 
@@ -60,7 +56,7 @@ export function proxify<O>(o: Observable<O>): ObservableProxy<O> {
       // return proxified sub-property
       const subproxy = proxify(
         o.pipe(
-          map((v) => {
+          map(v => {
             if (v == null) {
               // similar to pluck, we skip nullish values
               return v;

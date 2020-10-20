@@ -17,4 +17,4 @@ export const OBSERVABLE_INSTANCE_PROP_KEYS = [
 // a fn that will be used as Proxy basis
 // so that we could use Proxy.apply override
 // for a.b.c().subscribe(…) scenarios
-export function stubFn() { }
+export function stubFn() {}

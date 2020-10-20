@@ -1,7 +1,7 @@
-import { BehaviorSubject, Observable } from "rxjs";
-import { distinctUntilChanged, pluck } from "rxjs/operators";
+import { BehaviorSubject, Observable } from 'rxjs';
+import { distinctUntilChanged, pluck } from 'rxjs/operators';
 import { OBSERVABLE_INSTANCE_PROP_KEYS, stubFn } from './shared';
-import { StateProxy } from "./types";
+import { StateProxy } from './types';
 
 export { StateProxy };
 export function statify<O>(initialState: O): StateProxy<O> {
@@ -11,16 +11,19 @@ export function statify<O>(initialState: O): StateProxy<O> {
   const state$ = new BehaviorSubject<O>(initialState);
 
   const getter = deepGetter(() => state);
-  const setter = deepSetter(() => state, ns => {
-    state = ns;
-    state$.next(state);
-  });
+  const setter = deepSetter(
+    () => state,
+    ns => {
+      state = ns;
+      state$.next(state);
+    },
+  );
 
   return getSetProxy(state$, [], getter, setter);
 }
 
 function getSetProxy<O>(s: Observable<O>, ps: Path, getter: Getter, setter: Setter): StateProxy<O> {
-  return new Proxy(stubFn, {
+  return (new Proxy(stubFn, {
     get(_, p) {
       // Disabled feature ATM
       // // allow direct access to values on state
@@ -35,16 +38,13 @@ function getSetProxy<O>(s: Observable<O>, ps: Path, getter: Getter, setter: Sett
       if ('next' == p) {
         return function next(value) {
           return setter(ps, value);
-        }
+        };
       }
 
       if (OBSERVABLE_INSTANCE_PROP_KEYS.includes(p as any)) {
-        const newS = s.pipe(
-          bluck(ps),
-          distinctUntilChanged()
-        );
+        const newS = s.pipe(bluck(ps), distinctUntilChanged());
 
-        if (p == "pipe") {
+        if (p == 'pipe') {
           return function () {
             // applying only gettable proxy
             return getSetProxy(newS.pipe.apply(newS, arguments), [], getter, () => {});
@@ -59,8 +59,8 @@ function getSetProxy<O>(s: Observable<O>, ps: Path, getter: Getter, setter: Sett
     set(_, p, value) {
       setter(ps.concat(p), value);
       return true;
-    }
-  }) as unknown as StateProxy<O>;
+    },
+  }) as unknown) as StateProxy<O>;
 }
 
 // bluck is similar to pluck
@@ -70,7 +70,7 @@ function bluck<T>(ps: Key[]) {
       return observable;
     }
 
-    return observable.pipe(pluck(...ps as any[]));
+    return observable.pipe(pluck(...(ps as any[])));
   };
 }
 
@@ -80,7 +80,7 @@ type Getter = (ps: Path) => any;
 function deepGetter<T>(getRoot: () => T): Getter {
   return (ps: Path) => {
     return ps.reduce((a, c) => (a ?? {})[c], getRoot());
-  }
+  };
 }
 
 type Setter = (ps: Path, value: any) => void;
@@ -96,7 +96,7 @@ function deepSetter<T>(getRoot: () => T, setRoot: (s: T) => void): Setter {
     let p = ps[ps.length - 1];
     const ns = { ...s };
     const np = pps.reduce((a, c) => {
-      return a[c] = { ...a[c] }
+      return (a[c] = { ...a[c] });
     }, ns);
 
     np[p] = v;
