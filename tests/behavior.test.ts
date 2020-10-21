@@ -1,9 +1,9 @@
-import { Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { statify } from '../src/state';
-import { StateProxy } from '../src/types';
+import { BehaviorSubjectProxy } from '../src/types';
 import { createTestObserver, resetTestObservers, TestObserver } from './helpers';
 
-describe('State', () => {
+describe.skip('Behavior', () => {
   let sub: Subscription;
   let observer: TestObserver<unknown>;
 
@@ -18,7 +18,7 @@ describe('State', () => {
   });
 
   test('Atomic', () => {
-    const state = statify(0);
+    const state = statify(new BehaviorSubject(0));
     state.subscribe(observer);
     expect(observer.next).toHaveBeenCalledWith(0);
     state.next(1);
@@ -26,7 +26,7 @@ describe('State', () => {
   });
 
   test('Simple object', () => {
-    const state = statify({ a: 0 });
+    const state = statify(new BehaviorSubject({ a: 0 }));
     sub = state.a.subscribe(observer);
     expect(observer.next).toHaveBeenCalledWith(0);
     state.a.next(1);
@@ -36,14 +36,14 @@ describe('State', () => {
   });
 
   describe('Compound object', () => {
-    let state: StateProxy<{ a: number, b: { c: string }, z: number[] }>;
+    let state: BehaviorSubjectProxy<{ a: number, b: { c: string }, z: number[] }>;
     let ao: TestObserver<unknown>;
     let bo: TestObserver<unknown>;
     let co: TestObserver<unknown>;
     let z1o: TestObserver<unknown>;
 
     beforeEach(() => {
-      state = statify({ a: 0, b: { c: 'I' }, z: [0, 1, 2] });
+      state = statify(new BehaviorSubject({ a: 0, b: { c: 'I' }, z: [0, 1, 2] }));
       ao = createTestObserver();
       bo = createTestObserver();
       co = createTestObserver();
@@ -86,7 +86,7 @@ describe('State', () => {
 
   test('Story', () => {
     // create a state
-    const state = statify({ a: '🐰', z: '🏡' });
+    const state = statify(new BehaviorSubject({ a: '🐰', z: '🏡' }));
 
     // listen to & log state changes
     state.subscribe(observer);

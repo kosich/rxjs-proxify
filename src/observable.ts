@@ -3,8 +3,10 @@ import { map } from 'rxjs/operators';
 import { OBSERVABLE_INSTANCE_PROP_KEYS, stubFn } from './shared';
 import { ObservableProxy } from './types';
 
-export { ObservableProxy };
-export function proxify<O>(o: Observable<O>): ObservableProxy<O> {
+
+
+
+export function coreProxify<O>(o: Observable<O>): ObservableProxy<O> {
   // we need to preserve property proxies, so that
   // ```ts
   // let o = of({ a: 42 });
@@ -17,7 +19,7 @@ export function proxify<O>(o: Observable<O>): ObservableProxy<O> {
     // call result = O.fn in Observable<O>
     // and make it Observable<result>
     apply(_, __, argumentsList) {
-      return proxify(
+      return coreProxify(
         o.pipe(
           map(f => {
             // TODO: properly type it
@@ -40,7 +42,7 @@ export function proxify<O>(o: Observable<O>): ObservableProxy<O> {
         return function () {
           const pipe = Reflect.get(o, prop, receiver);
           const r = Reflect.apply(pipe, o, arguments);
-          return proxify(r);
+          return coreProxify(r);
         };
       }
 
@@ -54,7 +56,7 @@ export function proxify<O>(o: Observable<O>): ObservableProxy<O> {
       }
 
       // return proxified sub-property
-      const subproxy = proxify(
+      const subproxy = coreProxify(
         o.pipe(
           map(v => {
             if (v == null) {

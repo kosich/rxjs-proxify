@@ -9,13 +9,13 @@ export type ObservableProxy<O> =
   );
 
 export type SubjectProxy<O> =
-  ValueProxy<O, ProxyKind.Subject> & (
+  ValueProxy<O, ProxyKind.Observable> & (
     O extends (...args: infer P) => infer R
     ? ICallableProxiedObservable<O, P, R>
     : IProxiedSubject<O>
   );
 
-export type StateProxy<O> =
+export type BehaviorSubjectProxy<O> =
   ValueProxy<O, ProxyKind.State> & (
     O extends (...args: infer P) => infer R
     ? ICallableProxiedObservable<O, P, R>
@@ -25,7 +25,7 @@ export type StateProxy<O> =
 // helper to distinguish root types
 type TProxy<O, K extends ProxyKind> =
   K extends ProxyKind.State
-  ? StateProxy<O>
+  ? BehaviorSubjectProxy<O>
   : K extends ProxyKind.Subject
   ? SubjectProxy<O>
   // T == ProxyType.Observable
