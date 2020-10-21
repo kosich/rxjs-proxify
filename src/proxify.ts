@@ -24,27 +24,36 @@ export function proxify<O>(source) {
 }
 
 function observable<O>(source$: Observable<O>): ObservableProxy<O> {
-  return coreProxy(source$, [], null, null) as ObservableProxy<O>;
+  return coreProxy(source$, [], null) as ObservableProxy<O>;
 }
 
 function subject<O>(source$: Observable<O>): SubjectProxy<O> {
-  return coreProxy(source$, [], null, null) as SubjectProxy<O>;
+  return coreProxy(source$, [], null) as SubjectProxy<O>;
 }
 
 function behaviorSubject<O>(source$: BehaviorSubject<O>): BehaviorSubjectProxy<O> {
-  const getter = deepGetter(() => source$.value);
+  const gett = () => source$.value;
+
   const setter = deepSetter(
-    () => source$.value,
+    gett,
     ns => {
       source$.next(ns);
     },
   );
 
-  return coreProxy(source$, [], getter, setter) as BehaviorSubjectProxy<O>;
+  const getters = {
+    value: deepGetter(gett),
+    getValue: (ps: Path) => () => deepGetter(gett)(ps),
+    next: (ps: Path) => function next(value){
+      return setter(ps, value);
+    }
+  };
+
+  return coreProxy(source$, [], getters) as BehaviorSubjectProxy<O>;
 }
 
 // core api proxy
-export function coreProxy<O>(o: Observable<O>, ps: Path, getters: any, setters: any): ObservableProxy<O> {
+export function coreProxy<O>(o: Observable<O>, ps: Path, getters: any): ObservableProxy<O> {
   // we need to preserve property proxies, so that
   // ```ts
   // let o = of({ a: 42 });
@@ -71,7 +80,6 @@ export function coreProxy<O>(o: Observable<O>, ps: Path, getters: any, setters: 
           }),
         ),
         [],
-        null,
         null
       );
     },
@@ -87,7 +95,7 @@ export function coreProxy<O>(o: Observable<O>, ps: Path, getters: any, setters: 
         return function () {
           const pipe = Reflect.get(o, prop, receiver);
           const r = Reflect.apply(pipe, o, arguments);
-          return coreProxy(r, ps.concat(prop), getters, setters);
+          return coreProxy(r, ps.concat(prop), getters);
         };
       }
 
@@ -118,19 +126,10 @@ export function coreProxy<O>(o: Observable<O>, ps: Path, getters: any, setters: 
         ) as Observable<O[typeof prop]>,
         ps.concat(prop),
         getters,
-        setters
       );
 
       proxyForPropertyCache.set(prop, subproxy);
       return subproxy;
-    },
-    set(_, p, value) {
-      if (setters && p in setters) {
-        setters[p](ps, value);
-        return true;
-      }
-
-      return false;
     },
   }) as unknown) as ObservableProxy<O>;
 }

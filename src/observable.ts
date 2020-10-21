@@ -37,10 +37,6 @@ export function coreProxify<O>(o: Observable<O>): ObservableProxy<O> {
 
     // get Observable<O.prop> from Observable<O>
     get(_, prop: keyof O & keyof Observable<O>, receiver) {
-      if (prop in getters){
-        return getters[];
-      }
-
       // shortcut for pipe
       if (prop == 'pipe') {
         return function () {
