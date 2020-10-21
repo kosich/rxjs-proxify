@@ -1,14 +1,22 @@
 import { Subject } from "rxjs";
 import { coreProxy } from "./core/proxy";
-import { Path, SubjectProxy } from "./core/types";
+import { Key, Path, SubjectProxy } from "./core/types";
 
 export function subject<O>(source$: Subject<O>): SubjectProxy<O> {
   // overrides work only for root values
-  const getOverrides = {
-    next: (ps: Path) => ps.length ? void 0 : v => source$.next(v),
-    error: (ps: Path) => ps.length ? void 0 : e => source$.error(e),
-    complete: (ps: Path) => ps.length ? void 0 : () => source$.complete(),
+  const overrides = {
+    next: () => v => source$.next(v),
+    error: () => e => source$.error(e),
+    complete: () => () => source$.complete(),
+  };
+
+  const getOverride = (ps: Path, p: Key) => {
+    if (ps.length) {
+      return void 0;
+    }
+
+    return overrides[p];
   }
 
-  return coreProxy(source$, [], getOverrides) as SubjectProxy<O>;
+  return coreProxy(source$, [], getOverride) as SubjectProxy<O>;
 }

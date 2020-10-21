@@ -1,10 +1,10 @@
 import { Observable } from "rxjs";
 import { distinctUntilChanged, map } from "rxjs/operators";
 import { noop, OBSERVABLE_INSTANCE_PROP_KEYS } from "./shared";
-import { ObservableProxy, Path } from "./types";
+import { Key, ObservableProxy, Path } from "./types";
 
 // core api proxy
-export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverrides?: any, distinct?: boolean): ObservableProxy<O> {
+export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps: Path, p: Key) => (() => any) | null, distinct?: boolean): ObservableProxy<O> {
   // we need to preserve property proxies, so that
   // ```ts
   // let o = of({ a: 42 });
@@ -35,8 +35,9 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverrides?: any
 
     // get Observable<O.prop> from Observable<O>
     get(_, p: keyof O & keyof Observable<O>, receiver) {
-      if (getOverrides && p in getOverrides) {
-        return getOverrides[p](ps);
+      const override = getOverride && getOverride(ps, p);
+      if (override) {
+        return override();
       }
 
       // pass through Observable methods/props
@@ -67,7 +68,7 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverrides?: any
       const subproxy = coreProxy<O[typeof p]>(
         o as any,
         ps.concat(p),
-        getOverrides,
+        getOverride,
         distinct
       );
 

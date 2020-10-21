@@ -26,4 +26,15 @@ describe('Subject', () => {
     expect(observer.next).toHaveBeenCalledWith(1);
   });
 
+  test('disabled Subject api on deeper levels', () => {
+    const state = proxify(new Subject<{ a: { next: number, error: () => void }}>());
+    state.a.next.subscribe(observer);
+    expect(observer.next).not.toHaveBeenCalled();
+    state.next({ a: { next: 0, error: () => { } } });
+    expect(observer.next).toHaveBeenCalledWith(0);
+    state.a.error();
+    expect(observer.error).not.toHaveBeenCalled();
+    state.next({ a: { next: 1, error: () => { } } });
+    expect(observer.next).toHaveBeenCalledWith(1);
+  });
 });
