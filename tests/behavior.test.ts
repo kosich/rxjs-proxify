@@ -68,42 +68,7 @@ describe('Behavior', () => {
       expect(co.next).toHaveBeenCalledWith('II');
     });
 
-    it.skip('repeated updates', () => {
-      resetTestObservers(ao, bo, co, z1o);
-      state.a.next(0);
-      expect(ao.next).not.toHaveBeenCalled();
-      expect(bo.next).not.toHaveBeenCalled();
-      expect(co.next).not.toHaveBeenCalled();
-      expect(z1o.next).not.toHaveBeenCalled();
-    });
-
     // NOTE: state.z[1].next(…) will fail
   });
 
-  test('Story', () => {
-    // create a state
-    const state = proxify(new BehaviorSubject({ a: '🐰', z: '🏡' }));
-
-    // listen to & log state changes
-    state.subscribe(observer);
-    expect(observer.next).toHaveBeenCalledWith({ a: '🐰', z: '🏡' })
-
-    // update particular substate
-    state.a.next('🐇');
-    expect(observer.next).toHaveBeenCalledWith({ a: '🐇', z: '🏡' })
-
-    // update root state
-    state.next({ a: '🐇', z: '☁️' })
-    expect(observer.next).toHaveBeenCalledWith({ a: '🐇', z: '☁️' });
-
-    // and then…
-    state.z.next('🌙'); //> { a:🐇  z:🌙 }
-    // TODO: TS does not supported yet
-    // state.a += '👀';    //> { a:🐇👀 z:🌙 }
-    state.z.next('🛸')  //> { a:🐇👀 z:🛸 }
-    state.a.next('💨'); //> { a:💨  z:🛸 }
-
-    // read current values
-    expect(state.a.value + state.z.getValue()).toBe('💨🛸');
-  })
 });

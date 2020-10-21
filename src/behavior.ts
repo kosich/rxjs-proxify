@@ -2,27 +2,23 @@ import { BehaviorSubject } from "rxjs";
 import { coreProxy } from "./core/proxy";
 import { BehaviorSubjectProxy, Path } from "./core/types";
 
-export function behaviorSubject<O>(source$: BehaviorSubject<O>): BehaviorSubjectProxy<O> {
-  const gett = () => source$.value;
+export function behaviorSubject<O>(source$: BehaviorSubject<O>, distinct?: boolean): BehaviorSubjectProxy<O> {
+  const rootGetter = () => source$.value;
 
   const setter = deepSetter(
-    gett,
-    ns => {
-      source$.next(ns);
-    }
+    rootGetter,
+    ns => void source$.next(ns)
   );
 
   const getOverrides = {
-    value: deepGetter(gett),
-    getValue: (ps: Path) => () => deepGetter(gett)(ps),
-    next: (ps: Path) => function next(value) {
-      return setter(ps, value);
-    },
+    value: deepGetter(rootGetter),
+    getValue: (ps: Path) => () => deepGetter(rootGetter)(ps),
+    next: (ps: Path) => value => setter(ps, value),
     error: () => e => source$.error(e),
     complete: () => () => source$.complete()
   };
 
-  return coreProxy(source$, [], getOverrides) as BehaviorSubjectProxy<O>;
+  return coreProxy(source$, [], getOverrides, distinct) as BehaviorSubjectProxy<O>;
 }
 
 // poor man's getter and setter

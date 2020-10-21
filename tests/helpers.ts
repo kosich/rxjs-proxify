@@ -1,7 +1,7 @@
 import { Observer } from "rxjs";
 
 export interface TestObserver<T> extends Observer<T> {
-  reset: () => void;
+  mockReset: () => void;
   next: jest.Mock;
   error: jest.Mock;
   complete: jest.Mock;
@@ -9,7 +9,7 @@ export interface TestObserver<T> extends Observer<T> {
 
 export function createTestObserver<T>(): TestObserver<T> {
   const o = {
-    reset(){
+    mockReset(){
       o.next.mockReset();
       o.error.mockReset();
       o.complete.mockReset();
@@ -23,5 +23,5 @@ export function createTestObserver<T>(): TestObserver<T> {
 }
 
 export function resetTestObservers(...ts: TestObserver<any>[]) {
-  ts.forEach(t => t.reset())
+  ts.forEach(t => t.mockReset())
 }

@@ -19,7 +19,7 @@ describe('Proxify', () => {
 
   describe('Observable API', () => {
     test('isObservable should be true', () => {
-      const o = of({ a: 1 }, { a: 2 }, { a: 3 });
+      const o = of(1);
       const p = proxify(o);
       expect(isObservable(p)).toBe(true);
     });
@@ -91,6 +91,30 @@ describe('Proxify', () => {
       sub = p.a.pipe(filter((x) => x.ok)).b.subscribe(observer);
       expect(observer.next.mock.calls).toEqual([[1], [3]]);
       expect(observer.complete.mock.calls.length).toBe(1);
+    });
+
+    test('Three levels w/ four observers', () => {
+      const o = of({ a: { b: 1 } }, { a: { b: 2 } }, { a: { b: 3 } });
+      const p = proxify(o);
+      sub = new Subscription();
+      let ob1 = createTestObserver();
+      let ob2 = createTestObserver();
+      let ob3 = createTestObserver();
+      let ob4 = createTestObserver();
+      sub.add(p.subscribe(ob1));
+      sub.add(p.a.subscribe(ob2));
+      sub.add(p.a.b.subscribe(ob3));
+      sub.add(p.a.b.subscribe(ob4));
+
+      expect(ob1.next.mock.calls).toEqual([[{ a: { b: 1 } }], [{ a: { b: 2 } }], [{ a: { b: 3 } }]]);
+      expect(ob2.next.mock.calls).toEqual([[{ b: 1 }], [{ b: 2 }], [{ b: 3 }]]);
+      expect(ob3.next.mock.calls).toEqual([[1], [2], [3]]);
+      expect(ob4.next.mock.calls).toEqual([[1], [2], [3]]);
+
+      expect(ob1.complete).toHaveBeenCalled();
+      expect(ob2.complete).toHaveBeenCalled();
+      expect(ob3.complete).toHaveBeenCalled();
+      expect(ob4.complete).toHaveBeenCalled();
     });
   });
 
