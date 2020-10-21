@@ -1,8 +1,8 @@
 import { Subject, Subscription } from 'rxjs';
-import { proxify } from '../src/proxify';
+import { proxify } from '../src';
 import { createTestObserver, TestObserver } from './helpers';
 
-describe.skip('Subject', () => {
+describe('Subject', () => {
   let sub: Subscription;
   let observer: TestObserver<unknown>;
 

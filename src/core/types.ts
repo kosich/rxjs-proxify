@@ -155,3 +155,6 @@ interface IProxiedObservable<O> extends Observable<O> {
     ...operations: OperatorFunction<any, any>[]
   ): ObservableProxy<{}>;
 };
+
+export type Key = string | number | symbol;
+export type Path = Key[];

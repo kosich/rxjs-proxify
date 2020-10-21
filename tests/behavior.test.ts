@@ -1,6 +1,5 @@
 import { BehaviorSubject, Subscription } from 'rxjs';
-import { proxify } from '../src';
-import { BehaviorSubjectProxy } from '../src/types';
+import { BehaviorSubjectProxy, proxify } from '../src';
 import { createTestObserver, resetTestObservers, TestObserver } from './helpers';
 
 describe('Behavior', () => {
