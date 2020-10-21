@@ -1,6 +1,6 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, pluck } from 'rxjs/operators';
-import { OBSERVABLE_INSTANCE_PROP_KEYS, stubFn } from './shared';
+import { noop, OBSERVABLE_INSTANCE_PROP_KEYS } from './shared';
 import { BehaviorSubjectProxy } from './types';
 
 export { BehaviorSubjectProxy as StateProxy };
@@ -17,7 +17,7 @@ export function statify<O>(source$: BehaviorSubject<O>): BehaviorSubjectProxy<O>
 }
 
 function getSetProxy<O>(s: Observable<O>, ps: Path, getter: Getter, setter: Setter): BehaviorSubjectProxy<O> {
-  return (new Proxy(stubFn, {
+  return (new Proxy(noop, {
     get(_, p) {
       // Disabled feature ATM
       // // allow direct access to values on state

@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { OBSERVABLE_INSTANCE_PROP_KEYS, stubFn } from './shared';
+import { noop, OBSERVABLE_INSTANCE_PROP_KEYS } from './shared';
 import { ObservableProxy } from './types';
 
 
@@ -15,7 +15,7 @@ export function coreProxify<O>(o: Observable<O>): ObservableProxy<O> {
   // ```
   const proxyForPropertyCache = new Map<keyof O, ObservableProxy<O[keyof O]>>();
 
-  return (new Proxy(stubFn, {
+  return (new Proxy(noop, {
     // call result = O.fn in Observable<O>
     // and make it Observable<result>
     apply(_, __, argumentsList) {
@@ -37,6 +37,10 @@ export function coreProxify<O>(o: Observable<O>): ObservableProxy<O> {
 
     // get Observable<O.prop> from Observable<O>
     get(_, prop: keyof O & keyof Observable<O>, receiver) {
+      if (prop in getters){
+        return getters[];
+      }
+
       // shortcut for pipe
       if (prop == 'pipe') {
         return function () {

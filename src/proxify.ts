@@ -1,6 +1,6 @@
 import { BehaviorSubject, isObservable, Observable, Subject } from "rxjs";
-import { distinctUntilChanged, pluck } from "rxjs/operators";
-import { OBSERVABLE_INSTANCE_PROP_KEYS, stubFn } from "./shared";
+import { map } from "rxjs/operators";
+import { noop, OBSERVABLE_INSTANCE_PROP_KEYS } from "./shared";
 import { BehaviorSubjectProxy, ObservableProxy, SubjectProxy } from "./types";
 
 export { BehaviorSubjectProxy, ObservableProxy, SubjectProxy };
@@ -24,11 +24,11 @@ export function proxify<O>(source) {
 }
 
 function observable<O>(source$: Observable<O>): ObservableProxy<O> {
-  return getSetProxy(source$, [], null, null) as ObservableProxy<O>;
+  return coreProxy(source$, [], null, null) as ObservableProxy<O>;
 }
 
 function subject<O>(source$: Observable<O>): SubjectProxy<O> {
-  return getSetProxy(source$, [], null, null) as SubjectProxy<O>;
+  return coreProxy(source$, [], null, null) as SubjectProxy<O>;
 }
 
 function behaviorSubject<O>(source$: BehaviorSubject<O>): BehaviorSubjectProxy<O> {
@@ -40,69 +40,103 @@ function behaviorSubject<O>(source$: BehaviorSubject<O>): BehaviorSubjectProxy<O
     },
   );
 
-  return getSetProxy(source$, [], getter, setter);
+  return coreProxy(source$, [], getter, setter) as BehaviorSubjectProxy<O>;
 }
 
-function getSetProxy<O>(s: Observable<O>, ps: Path, getter: Getter, setter: Setter): BehaviorSubjectProxy<O> {
-  return (new Proxy(stubFn, {
-    get(_, p) {
-      // Disabled feature ATM
-      // // allow direct access to values on state
-      // if (Symbol.toPrimitive == p) {
-      //   return function toPrimitive(hint) {
-      //     // Q: should we call toPrimitive on result?
-      //     return getter(ps);
-      //   }
-      // }
+// core api proxy
+export function coreProxy<O>(o: Observable<O>, ps: Path, getters: any, setters: any): ObservableProxy<O> {
+  // we need to preserve property proxies, so that
+  // ```ts
+  // let o = of({ a: 42 });
+  // let p = proxify(o);
+  // assert(p.a === p.a);
+  // ```
+  const proxyForPropertyCache = new Map<keyof O, ObservableProxy<O[keyof O]>>();
 
-      if ('value' == p) {
-        return getter(ps);
+  return (new Proxy(noop, {
+    // call result = O.fn in Observable<O>
+    // and make it Observable<result>
+    apply(_, __, argumentsList) {
+      return coreProxy(
+        o.pipe(
+          map(f => {
+            // TODO: properly type it
+            if (typeof f == 'function') {
+              const result = Reflect.apply(f, void 0, argumentsList);
+              return result;
+            }
+
+            // non-function or null values are skipped
+            return null;
+          }),
+        ),
+        [],
+        null,
+        null
+      );
+    },
+
+    // get Observable<O.prop> from Observable<O>
+    get(_, prop: keyof O & keyof Observable<O>, receiver) {
+      if (getters && prop in getters){
+        return getters[prop](ps);
       }
 
-      if ('getValue' == p){
-        return () => getter(ps);
-      }
-
-      // Observer/Subject-like pushing to stream
-      // TODO: cover error / complete on root
-      if ('next' == p) {
-        return function next(value) {
-          return setter(ps, value);
+      // shortcut for pipe
+      if (prop == 'pipe') {
+        return function () {
+          const pipe = Reflect.get(o, prop, receiver);
+          const r = Reflect.apply(pipe, o, arguments);
+          return coreProxy(r, ps.concat(prop), getters, setters);
         };
       }
 
-      if (OBSERVABLE_INSTANCE_PROP_KEYS.includes(p as any)) {
-        const newS = s.pipe(bluck(ps), distinctUntilChanged());
-
-        if (p == 'pipe') {
-          return function () {
-            // applying only gettable proxy
-            return getSetProxy(newS.pipe.apply(newS, arguments), [], getter, () => {});
-          };
-        }
-
-        return newS[p];
+      // pass through Observable methods/props
+      if (OBSERVABLE_INSTANCE_PROP_KEYS.includes(prop as any)) {
+        return Reflect.get(o, prop, receiver);
       }
 
-      return getSetProxy(s, ps.concat(p), getter, setter);
+      if (proxyForPropertyCache.has(prop)) {
+        return proxyForPropertyCache.get(prop);
+      }
+
+      // return proxified sub-property
+      const subproxy = coreProxy(
+        o.pipe(
+          map(v => {
+            if (v == null) {
+              // similar to pluck, we skip nullish values
+              return v;
+            } else if (typeof v[prop] == 'function') {
+              // we should keep the context for methods
+              return (v[prop] as any).bind(v);
+            } else {
+              // pluck
+              return v[prop];
+            }
+          }),
+        ) as Observable<O[typeof prop]>,
+        ps.concat(prop),
+        getters,
+        setters
+      );
+
+      proxyForPropertyCache.set(prop, subproxy);
+      return subproxy;
     },
     set(_, p, value) {
-      setter(ps.concat(p), value);
-      return true;
+      if (setters && p in setters) {
+        setters[p](ps, value);
+        return true;
+      }
+
+      return false;
     },
-  }) as unknown) as BehaviorSubjectProxy<O>;
+  }) as unknown) as ObservableProxy<O>;
 }
 
-// bluck is similar to pluck
-function bluck<T>(ps: Key[]) {
-  return (observable: Observable<T>) => {
-    if (!ps.length) {
-      return observable;
-    }
-
-    return observable.pipe(pluck(...(ps as any[])));
-  };
-}
+type Key = string | number | symbol;
+type Path = Key[];
 
 // poor man's getter and setter
 type Getter = (ps: Path) => any;
@@ -133,6 +167,3 @@ function deepSetter<T>(getRoot: () => T, setRoot: (s: T) => void): Setter {
     setRoot(ns);
   };
 }
-
-type Key = string | number | symbol;
-type Path = Key[];
