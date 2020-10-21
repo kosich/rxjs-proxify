@@ -24,11 +24,11 @@ export function proxify<O>(source) {
 }
 
 function observable<O>(source$: Observable<O>): ObservableProxy<O> {
-  return coreProxy(source$, [], null) as ObservableProxy<O>;
+  return coreProxy(source$, []) as ObservableProxy<O>;
 }
 
 function subject<O>(source$: Observable<O>): SubjectProxy<O> {
-  return coreProxy(source$, [], null) as SubjectProxy<O>;
+  return coreProxy(source$, []) as SubjectProxy<O>;
 }
 
 function behaviorSubject<O>(source$: BehaviorSubject<O>): BehaviorSubjectProxy<O> {
@@ -41,19 +41,21 @@ function behaviorSubject<O>(source$: BehaviorSubject<O>): BehaviorSubjectProxy<O
     },
   );
 
-  const getters = {
+  const getOverrides = {
     value: deepGetter(gett),
     getValue: (ps: Path) => () => deepGetter(gett)(ps),
-    next: (ps: Path) => function next(value){
+    next: (ps: Path) => function next(value) {
       return setter(ps, value);
-    }
+    },
+    error: () => e => source$.error(e),
+    complete: () => () => source$.complete()
   };
 
-  return coreProxy(source$, [], getters) as BehaviorSubjectProxy<O>;
+  return coreProxy(source$, [], getOverrides) as BehaviorSubjectProxy<O>;
 }
 
 // core api proxy
-export function coreProxy<O>(o: Observable<O>, ps: Path, getters: any): ObservableProxy<O> {
+export function coreProxy<O>(o: Observable<O>, ps: Path, getOverrides?: any): ObservableProxy<O> {
   // we need to preserve property proxies, so that
   // ```ts
   // let o = of({ a: 42 });
@@ -79,33 +81,40 @@ export function coreProxy<O>(o: Observable<O>, ps: Path, getters: any): Observab
             return null;
           }),
         ),
-        [],
-        null
+        []
       );
     },
 
     // get Observable<O.prop> from Observable<O>
-    get(_, prop: keyof O & keyof Observable<O>, receiver) {
-      if (getters && prop in getters){
-        return getters[prop](ps);
+    get(_, p: keyof O & keyof Observable<O>, receiver) {
+      if (getOverrides && p in getOverrides) {
+        return getOverrides[p](ps);
       }
 
       // shortcut for pipe
-      if (prop == 'pipe') {
+      if (p == 'pipe') {
         return function () {
-          const pipe = Reflect.get(o, prop, receiver);
+          const pipe = Reflect.get(o, p, receiver);
           const r = Reflect.apply(pipe, o, arguments);
-          return coreProxy(r, ps.concat(prop), getters);
+          return coreProxy(r, ps.concat(p));
         };
       }
 
       // pass through Observable methods/props
-      if (OBSERVABLE_INSTANCE_PROP_KEYS.includes(prop as any)) {
-        return Reflect.get(o, prop, receiver);
+      if (OBSERVABLE_INSTANCE_PROP_KEYS.includes(p as any)) {
+        const builtIn = Reflect.get(o, p, receiver);
+        // NOTE: we're binding .pipe, .subscribe, .lift, etc to current Source,
+        // so that inner calls to `this` wont go through proxy again. This is
+        // not equal to raw Rx where these fns are not bound
+        if (typeof builtIn == 'function') {
+          return builtIn.bind(o);
+        } else {
+          return builtIn;
+        }
       }
 
-      if (proxyForPropertyCache.has(prop)) {
-        return proxyForPropertyCache.get(prop);
+      if (proxyForPropertyCache.has(p)) {
+        return proxyForPropertyCache.get(p);
       }
 
       // return proxified sub-property
@@ -115,20 +124,21 @@ export function coreProxy<O>(o: Observable<O>, ps: Path, getters: any): Observab
             if (v == null) {
               // similar to pluck, we skip nullish values
               return v;
-            } else if (typeof v[prop] == 'function') {
+            } else if (typeof v[p] == 'function') {
               // we should keep the context for methods
-              return (v[prop] as any).bind(v);
+              return (v[p] as any).bind(v);
             } else {
               // pluck
-              return v[prop];
+              return v[p];
             }
           }),
-        ) as Observable<O[typeof prop]>,
-        ps.concat(prop),
-        getters,
+        ) as Observable<O[typeof p]>,
+        ps.concat(p),
+        getOverrides,
       );
 
-      proxyForPropertyCache.set(prop, subproxy);
+      // cache o.prop.subprop
+      proxyForPropertyCache.set(p, subproxy);
       return subproxy;
     },
   }) as unknown) as ObservableProxy<O>;
