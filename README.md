@@ -23,11 +23,16 @@ stream.pipe(pluck('msg')).subscribe(…);
 stream.msg.subscribe(…);
 ```
 
-With good TypeScript support! 😲
+With good TypeScript support! 😲 Roughly speaking:
 
-Roughly speaking, Proxify turns  
-`Observable<{ title: string }>` into `Observable<{ title: string }> & { title: Observable<string> }`  
-And it does it recursively. Letting you access Observable API as well as pluck props & methods from any depth of the stream!
+```ts
+proxify( Observable<{ msg: string }> ) ≈ Observable<{ msg: string }> & { msg: Observable<string> }
+```
+
+**But recursively.** So `stream.msg` is a Proxy itself, allowing you to `stream.msg.length.subscribe(…)`!
+
+Proxify lets you **access Observable API** as well as **pluck props** and **call methods** at any depth of an Observable, Subject, or BehaviorSubject! See the [API](#-api) and [Examples](#-examples) sections to learn more.
+
 
 ## 📦 Install
 
