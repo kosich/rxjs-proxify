@@ -1,5 +1,5 @@
 import { Subscription } from 'rxjs';
-import { statify } from '../src/state';
+import { statify } from '../src';
 import { createTestObserver, TestObserver } from './helpers';
 
 describe('State', () => {
