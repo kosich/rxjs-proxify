@@ -1,13 +1,13 @@
 {
   "name": "rxjs-proxify",
   "version": "0.0.7",
-  "description": "Proxy for RxJS Observables",
+  "description": "Turns a Stream of Objects into an Object of Streams",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "es2015": "./dist/es2015/index.js",
   "types": "./dist/types/index.d.ts",
   "unpkg": "./dist/rxjs-proxify.min.js",
-  "sideEffects": false,
+  "sideEffects": true,
   "scripts": {
     "start": "webpack --config configs/webpack.dev.js",
     "clean": "rimraf temp dist",
@@ -28,11 +28,10 @@
     "url": "git+https://github.com/kosich/rxjs-proxify.git"
   },
   "keywords": [
-    "text-to-speech",
-    "speech synthesis",
-    "t2s",
-    "Web Speech API",
     "rxjs",
+    "rp",
+    "frp",
+    "angular",
     "javascript",
     "typescript"
   ],
