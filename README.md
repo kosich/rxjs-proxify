@@ -15,7 +15,7 @@
   </h1>
 </div>
 
-Access values inside RxJS Observables as if they were directly available on the stream, with good TypeScript support!
+Access values inside RxJS Observables as if they were directly available on the stream!
 
 ```ts
 stream.pipe(pluck('msg')).subscribe(…);
@@ -23,9 +23,11 @@ stream.pipe(pluck('msg')).subscribe(…);
 stream.msg.subscribe(…);
 ```
 
-😲 !
+With good TypeScript support! 😲
 
-Roughly speaking, Proxify turns your `Observable<{ title: string }>` into `Observable<{ title: string }> & { title: Observable<string> }`. And it does it recursively. Letting you access Observable API as well as pluck props & methods from any depth of the stream!
+Roughly speaking, Proxify turns  
+`Observable<{ title: string }>` into `Observable<{ title: string }> & { title: Observable<string> }`  
+And it does it recursively. Letting you access Observable API as well as pluck props & methods from any depth of the stream!
 
 ## 📦 Install
 
@@ -35,11 +37,78 @@ npm i rxjs-proxify
 
 or [try it online](https://stackblitz.com/edit/rxjs-proxify-repl?file=index.ts)!
 
+## 🛠 API
+
+There are two methods available to you: [`proxify`](#proxify) and [`statify`](#statify)
+
+## Proxify
+
+`proxify(stream)` will wrap your Observable, Subject or BehaviorSubject in a Proxy:
+
+**Observable Proxy**  
+subscribe at any depth
+
+```ts
+const observable = proxify( of({ p: '🐑' }) );
+observable.subscribe(console.log); // > { p: 🐑 }
+observable.p.subscribe(console.log); // > 🐑
+```
+
+**Subject Proxy**  
+subscribe at any depth, push at the root
+
+```ts
+const subject = proxify(new Subject<{ p: string }>());
+subject.subscribe(console.log);
+subject.p.subscribe(console.log);
+subject.next({ p: '🐥' }); // > { p: 🐥 } // > 🐥
+```
+
+**BehaviorSubject Proxy**  
+subscribe at any depth, push at any depth, synchronously read the current state
+
+```ts
+const behavior = proxify(new BehaviorSubject({ p: '🐖' }));
+behavior.p.subscribe(console.log); // > 🐖
+behavior.p.next('🐇'); // > 🐇
+console.log(behavior.p.value) // > 🐇
+```
+
+### Statify
+
+`statify(value)` will put the value in a BehaviorSubject Proxy and add a `distinctUntilChanged` operator on each property access.
+
+**State Proxy**
+subscribe to distinct updates at any depth, push at any depth, synchronously read the current state
+
+```ts
+// create a state
+const state = statify({ a: '🐰', z: '🏡' });
+
+// listen to & log root state changes
+state.subscribe(console.log); //> { a:🐰 z:🏡 }
+
+// update particular substate
+state.a.next('🐇'); //> { a:🐇 z:🏡 }
+
+// read current values
+console.log(state.z.value + state.a.value); //> 🏡🐇
+
+// update root state, still logging
+state.next({ a: '🐇', z: '☁️' }) //> { a:🐇 z:☁️ }
+
+// and then…
+state.z.next('🌙');   //> { a:🐇  z:🌙 }
+state.a.next('🐇👀'); //> { a:🐇👀 z:🌙 }
+state.z.next('🛸')    //> { a:🐇👀 z:🛸 }
+state.a.next('💨');   //> { a:💨  z:🛸 }
+```
+
+See Examples section for more details.
+
 ## 📖 Examples
 
-### Basic usage
-
-`pluck` a single property:
+### Basic
 
 ```ts
 import { proxify } from "rxjs-proxify";
