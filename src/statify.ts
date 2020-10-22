@@ -2,8 +2,8 @@ import { BehaviorSubject } from "rxjs";
 import { behaviorSubject } from "./behavior";
 import { BehaviorSubjectProxy } from "./core/types";
 
-export function statify<T>(o: T): BehaviorSubjectProxy<T> {
-  return behaviorSubject(new BehaviorSubject(o), true);
+export function statify<T,X>(o: T, x?: X): BehaviorSubjectProxy<T, X> {
+  return behaviorSubject(new BehaviorSubject(o), x, true);
 }
 
 /**

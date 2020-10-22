@@ -2,7 +2,7 @@ import { Subject } from "rxjs";
 import { coreProxy } from "./core/proxy";
 import { Key, Path, SubjectProxy } from "./core/types";
 
-export function subject<O>(source$: Subject<O>): SubjectProxy<O> {
+export function subject<O, X>(source$: Subject<O>, x?: X): SubjectProxy<O, X> {
   // overrides work only for root values
   const overrides = {
     next: () => v => source$.next(v),
@@ -18,5 +18,5 @@ export function subject<O>(source$: Subject<O>): SubjectProxy<O> {
     return overrides[p];
   }
 
-  return coreProxy(source$, [], getOverride) as SubjectProxy<O>;
+  return coreProxy(source$, [], getOverride, x) as unknown as SubjectProxy<O, X>;
 }

@@ -128,7 +128,7 @@ describe('Proxify', () => {
     });
 
     it('should keep the THIS context', () => {
-      const a = function () {
+      const a = function (this: { b: number }) {
         return this.b;
       };
       const o = of({ a, b: 1 }, { a, b: 2 }, { a, b: 3 });
@@ -227,7 +227,7 @@ describe('Proxify', () => {
       it('should filter', () => {
         proxify(of([1, 2, 3]))
           .filter(x => x != 2)
-        [1]
+          [1]
           .subscribe(observer)
 
         expect(observer.next.mock.calls).toEqual([[3]]);

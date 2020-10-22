@@ -1,35 +1,35 @@
 import { Observable, Observer, OperatorFunction } from 'rxjs';
 
 // Proxy kinds {{{
-export type ObservableProxy<O> =
-  ValueProxy<O, ProxyKind.Observable> & (
+export type ObservableProxy<O, X> =
+  ValueProxy<O, X, ProxyKind.Observable> & (
     O extends (...args: infer P) => infer R
-    ? ICallableProxiedObservable<O, P, R>
-    : IProxiedObservable<O>
+    ? ICallableProxiedObservable<O, P, R, X>
+    : IProxiedObservable<O, X>
+  ) & X;
+
+export type SubjectProxy<O, X> =
+  ValueProxy<O, X, ProxyKind.Observable> & (
+    O extends (...args: infer P) => infer R
+    ? ICallableProxiedObservable<O, P, R, X>
+    : IProxiedSubject<O, X>
   );
 
-export type SubjectProxy<O> =
-  ValueProxy<O, ProxyKind.Observable> & (
+export type BehaviorSubjectProxy<O, X> =
+  ValueProxy<O, X, ProxyKind.State> & (
     O extends (...args: infer P) => infer R
-    ? ICallableProxiedObservable<O, P, R>
-    : IProxiedSubject<O>
-  );
-
-export type BehaviorSubjectProxy<O> =
-  ValueProxy<O, ProxyKind.State> & (
-    O extends (...args: infer P) => infer R
-    ? ICallableProxiedObservable<O, P, R>
-    : IProxiedState<O>
+    ? ICallableProxiedObservable<O, P, R, X>
+    : IProxiedBehaviorSubject<O, X>
   );
 
 // helper to distinguish root types
-type TProxy<O, K extends ProxyKind> =
+type TProxy<O, X, K extends ProxyKind> =
   K extends ProxyKind.State
-  ? BehaviorSubjectProxy<O>
+  ? BehaviorSubjectProxy<O, X>
   : K extends ProxyKind.Subject
-  ? SubjectProxy<O>
+  ? SubjectProxy<O, X>
   // T == ProxyType.Observable
-  : ObservableProxy<O>
+  : ObservableProxy<O, X>
 
 enum ProxyKind {
   Observable,
@@ -39,71 +39,71 @@ enum ProxyKind {
 // }}}
 
 // Basic proxy with props as proxify
-type ValueProxy<O, K extends ProxyKind> =
+type ValueProxy<O, X, K extends ProxyKind> =
   O extends null
   ? {}
   : O extends boolean
-  ? { [P in keyof Boolean]: ObservableProxy<Boolean[P]> }
+  ? { [P in keyof Boolean]: ObservableProxy<Boolean[P], X> }
   : O extends string
-  ? { [P in keyof String]: ObservableProxy<String[P]> }
+  ? { [P in keyof String]: ObservableProxy<String[P], X> }
   : O extends number
-  ? { [P in keyof Number]: ObservableProxy<Number[P]> }
+  ? { [P in keyof Number]: ObservableProxy<Number[P], X> }
   : O extends bigint
-  ? { [P in keyof BigInt]: ObservableProxy<BigInt[P]> }
+  ? { [P in keyof BigInt]: ObservableProxy<BigInt[P], X> }
   : O extends symbol
-  ? { [P in keyof Symbol]: ObservableProxy<Symbol[P]> }
+  ? { [P in keyof Symbol]: ObservableProxy<Symbol[P], X> }
   // special hack for array type
   : O extends (infer R)[]
-  ? { [P in keyof R[]]: TProxy<R[][P], K> }
+  ? { [P in keyof R[]]: TProxy<R[][P], X, K> }
   // any object
-  : { [P in keyof O]: TProxy<O[P], K> };
+  : { [P in keyof O]: TProxy<O[P], X, K> };
 
 // Callable Proxied Observable
 type BasicFn = (...args: any[]) => any;
 
-interface ICallableProxiedObservable<F extends BasicFn, P1 extends any[], R1> extends IProxiedObservable<F> {
-  (...args: P1): ObservableProxy<R1>;
+interface ICallableProxiedObservable<F extends BasicFn, P1 extends any[], R1, X> extends IProxiedObservable<F, X> {
+  (...args: P1): ObservableProxy<R1, X>;
 }
 
 // State API
-interface IProxiedState<O> extends IProxiedSubject<O> {
+interface IProxiedBehaviorSubject<O, X> extends IProxiedSubject<O, X> {
   readonly value: O;
   getValue(): O;
 }
 
 // Subject API
-interface IProxiedSubject<O> extends IProxiedObservable<O>, Observer<O> {
+interface IProxiedSubject<O, X> extends IProxiedObservable<O, X>, Observer<O> {
   next(value: O): void;
   error(err: any): void;
   complete(): void;
 }
 
 // Observable with pipe method, returning Proxify
-interface IProxiedObservable<O> extends Observable<O> {
-  pipe(): ObservableProxy<O>;
-  pipe<A>(op1: OperatorFunction<O, A>): ObservableProxy<A>;
+interface IProxiedObservable<O, X> extends Observable<O> {
+  pipe(): ObservableProxy<O, X>;
+  pipe<A>(op1: OperatorFunction<O, A>): ObservableProxy<A, X>;
   pipe<A, B>(
     op1: OperatorFunction<O, A>,
     op2: OperatorFunction<A, B>,
-  ): ObservableProxy<B>;
+  ): ObservableProxy<B, X>;
   pipe<A, B, C>(
     op1: OperatorFunction<O, A>,
     op2: OperatorFunction<A, B>,
     op3: OperatorFunction<B, C>,
-  ): ObservableProxy<C>;
+  ): ObservableProxy<C, X>;
   pipe<A, B, C, D>(
     op1: OperatorFunction<O, A>,
     op2: OperatorFunction<A, B>,
     op3: OperatorFunction<B, C>,
     op4: OperatorFunction<C, D>,
-  ): ObservableProxy<D>;
+  ): ObservableProxy<D, X>;
   pipe<A, B, C, D, E>(
     op1: OperatorFunction<O, A>,
     op2: OperatorFunction<A, B>,
     op3: OperatorFunction<B, C>,
     op4: OperatorFunction<C, D>,
     op5: OperatorFunction<D, E>,
-  ): ObservableProxy<E>;
+  ): ObservableProxy<E, X>;
   pipe<A, B, C, D, E, F>(
     op1: OperatorFunction<O, A>,
     op2: OperatorFunction<A, B>,
@@ -111,7 +111,7 @@ interface IProxiedObservable<O> extends Observable<O> {
     op4: OperatorFunction<C, D>,
     op5: OperatorFunction<D, E>,
     op6: OperatorFunction<E, F>,
-  ): ObservableProxy<F>;
+  ): ObservableProxy<F, X>;
   pipe<A, B, C, D, E, F, G>(
     op1: OperatorFunction<O, A>,
     op2: OperatorFunction<A, B>,
@@ -120,7 +120,7 @@ interface IProxiedObservable<O> extends Observable<O> {
     op5: OperatorFunction<D, E>,
     op6: OperatorFunction<E, F>,
     op7: OperatorFunction<F, G>,
-  ): ObservableProxy<G>;
+  ): ObservableProxy<G, X>;
   pipe<A, B, C, D, E, F, G, H>(
     op1: OperatorFunction<O, A>,
     op2: OperatorFunction<A, B>,
@@ -130,7 +130,7 @@ interface IProxiedObservable<O> extends Observable<O> {
     op6: OperatorFunction<E, F>,
     op7: OperatorFunction<F, G>,
     op8: OperatorFunction<G, H>,
-  ): ObservableProxy<H>;
+  ): ObservableProxy<H, X>;
   pipe<A, B, C, D, E, F, G, H, I>(
     op1: OperatorFunction<O, A>,
     op2: OperatorFunction<A, B>,
@@ -141,7 +141,7 @@ interface IProxiedObservable<O> extends Observable<O> {
     op7: OperatorFunction<F, G>,
     op8: OperatorFunction<G, H>,
     op9: OperatorFunction<H, I>,
-  ): ObservableProxy<I>;
+  ): ObservableProxy<I, X>;
   pipe<A, B, C, D, E, F, G, H, I>(
     op1: OperatorFunction<O, A>,
     op2: OperatorFunction<A, B>,
@@ -153,7 +153,7 @@ interface IProxiedObservable<O> extends Observable<O> {
     op8: OperatorFunction<G, H>,
     op9: OperatorFunction<H, I>,
     ...operations: OperatorFunction<any, any>[]
-  ): ObservableProxy<{}>;
+  ): ObservableProxy<{}, X>;
 };
 
 export type Key = string | number | symbol;
