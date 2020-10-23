@@ -83,7 +83,7 @@ console.log(behavior.p.value) // > 🐇
 
 `statify(value)` will put the value in a BehaviorSubject Proxy and add a `distinctUntilChanged` operator on each property access.
 
-**State Proxy**
+**State Proxy**  
 subscribe to distinct updates at any depth, push at any depth, synchronously read the current state
 
 ```ts
