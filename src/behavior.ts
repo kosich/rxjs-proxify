@@ -11,10 +11,16 @@ export function behaviorSubject<O>(source$: BehaviorSubject<O>, distinct?: boole
   );
 
   const getOverride = (ps: Path, p: Key) => {
+    const readValue = () => (deepGetter(rootGetter)(ps));
+
     const overrides = {
-      value: () => deepGetter(rootGetter)(ps),
-      getValue: () => () => deepGetter(rootGetter)(ps),
-      next: () => value => setter(ps, value),
+      value: readValue,
+      getValue: () => readValue,
+      next: () => value => {
+        if (!distinct || value !== readValue()){
+          setter(ps, value)
+        }
+      },
       error: () => e => source$.error(e),
       complete: () => () => source$.complete()
     }

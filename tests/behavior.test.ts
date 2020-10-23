@@ -31,7 +31,10 @@ describe('Behavior', () => {
     state.a.next(1);
     expect(observer.next).toHaveBeenCalledWith(1);
     state.next({ a: 1 });
-    expect(observer.next).toHaveBeenCalledWith(1);
+    expect(observer.next).toHaveBeenCalledTimes(3);
+    // repeated call
+    state.a.next(1);
+    expect(observer.next).toHaveBeenCalledTimes(4);
   });
 
   describe('Compound object', () => {

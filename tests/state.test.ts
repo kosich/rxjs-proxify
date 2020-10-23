@@ -1,5 +1,5 @@
 import { Subscription } from 'rxjs';
-import { statify } from '../src';
+import { BehaviorSubjectProxy, statify } from '../src';
 import { createTestObserver, TestObserver } from './helpers';
 
 describe('State', () => {
@@ -43,13 +43,28 @@ describe('State', () => {
     expect(state.a.value + state.z.getValue()).toBe('💨🛸');
   })
 
-  it('skip repeated updates', () => {
-    const state = statify({ a: 0 });
-    sub = state.a.subscribe(observer);
-    expect(observer.next).toHaveBeenCalledWith(0);
-    observer.mockReset();
-    state.a.next(0);
-    expect(observer.next).not.toHaveBeenCalled();
+  describe('skip repeated updates', () => {
+    let state: BehaviorSubjectProxy<{ a: number }>;
+
+    beforeEach(() => {
+      state = statify({ a: 0 });
+    });
+
+    it('skip deep repeated updates', () => {
+      sub = state.subscribe(observer);
+      expect(observer.next).toHaveBeenCalledWith({ a: 0 });
+      observer.mockReset();
+      state.a.next(0);
+      expect(observer.next).not.toHaveBeenCalled();
+    });
+
+    it('skip repeated updates', () => {
+      sub = state.a.subscribe(observer);
+      expect(observer.next).toHaveBeenCalledWith(0);
+      observer.mockReset();
+      state.a.next(0);
+      expect(observer.next).not.toHaveBeenCalled();
+    });
   });
 
 });
