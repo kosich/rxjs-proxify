@@ -1,4 +1,4 @@
-import { isObservable, of, Subscription } from 'rxjs';
+import { combineLatest, from, isObservable, Observable, of, Subscription } from 'rxjs';
 import { filter, map, scan } from 'rxjs/operators';
 import { proxify } from '../src';
 import { createTestObserver, TestObserver } from './helpers';
@@ -22,6 +22,27 @@ describe('Proxify', () => {
       const o = of(1);
       const p = proxify(o);
       expect(isObservable(p)).toBe(true);
+    });
+
+    test('should be instance of Observable', () => {
+      const o = of(1);
+      const p = proxify(o);
+      expect(p instanceof Observable).toBe(true);
+    });
+
+    test('should still behave as an Observable even after applying from', () => {
+      const o = of(1);
+      const p = proxify(o);
+      const o2 = from(p);
+      sub = o2.subscribe(observer);
+      expect(observer.next.mock.calls).toEqual([[1]]);
+    });
+
+    test('should be combinable with other Observables', () => {
+      const a = proxify(of('a'));
+      const b = of('b');
+      sub = combineLatest([a, b]).subscribe(observer);
+      expect(observer.next.mock.calls).toEqual([[['a', 'b']]]);
     });
 
     test('directly applying operator', () => {

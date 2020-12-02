@@ -14,6 +14,9 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps:
   const proxyForPropertyCache = new Map<keyof O, ObservableProxy<O[keyof O]>>();
 
   return (new Proxy(noop, {
+    getPrototypeOf: function () {
+      return Observable.prototype;
+    },
     // call result = O.fn in Observable<O>
     // and make it Observable<result>
     apply(_, __, argumentsList) {
