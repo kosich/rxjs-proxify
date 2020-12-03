@@ -1,5 +1,5 @@
 {
-    "hooks": {
-        "pre-commit": "tsc --noEmit && lint-staged"
-    }
+  "hooks": {
+    "pre-commit": "tsc --noEmit && lint-staged"
+  }
 }
