@@ -32,4 +32,5 @@ jobs:
             ${{ runner.OS }}-node-
             ${{ runner.OS }}-
       - run: npm ci
+      - run: npm run format:check
       - run: npm test
