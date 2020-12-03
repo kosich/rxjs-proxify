@@ -24,7 +24,7 @@
     "np": "npm run clean && npm run build && np",
     "format:check": "prettier -c .",
     "format:fix": "prettier --write .",
-    "format": "npm run prettier:fix"
+    "format": "npm run format:fix"
   },
   "repository": {
     "type": "git",
