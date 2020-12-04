@@ -4,14 +4,14 @@ import { noop, OBSERVABLE_INSTANCE_PROP_KEYS } from "./shared";
 import { Key, ObservableProxy, Path } from "./types";
 
 // core api proxy
-export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps: Path, p: Key) => (() => any) | null, distinct?: boolean): ObservableProxy<O> {
+export function coreProxy<O, X>(o: Observable<O>, ps: Path = [], getOverride?: (ps: Path, p: Key) => (() => any) | null, x?: X, distinct?: boolean): ObservableProxy<O, X> {
   // we need to preserve property proxies, so that
   // ```ts
   // let o = of({ a: 42 });
   // let p = proxify(o);
   // assert(p.a === p.a);
   // ```
-  const proxyForPropertyCache = new Map<keyof O, ObservableProxy<O[keyof O]>>();
+  const proxyForPropertyCache = new Map<keyof O, ObservableProxy<O[keyof O], X>>();
 
   return (new Proxy(noop, {
     getPrototypeOf: function () {
@@ -33,11 +33,21 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps:
             return f;
           })
         ),
+        void 0,
+        void 0,
+        x
       );
     },
 
     // get Observable<O.prop> from Observable<O>
     get(_, p: keyof O & keyof Observable<O>, receiver) {
+      if (x && p in x) {
+        const f = x[p as string];
+        if (typeof f == 'function') {
+          Reflect.apply(f, o.pipe(deepPluck(ps), maybeDistinct(distinct)), [])
+        }
+      }
+
       const override = getOverride && getOverride(ps, p);
       if (override) {
         return override();
@@ -59,7 +69,7 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps:
         // we should wrap piped observable into another proxy
         return function () {
           const applied = Reflect.apply(builtIn, deepO, arguments);
-          return coreProxy(applied);
+          return coreProxy(applied, void 0, void 0, x);
         };
       }
 
@@ -68,10 +78,11 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps:
       }
 
       // return proxified sub-property
-      const subproxy = coreProxy<O[typeof p]>(
+      const subproxy = coreProxy<O[typeof p], X>(
         o as any,
         ps.concat(p),
         getOverride,
+        x,
         distinct
       );
 
@@ -79,7 +90,7 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps:
       proxyForPropertyCache.set(p, subproxy);
       return subproxy;
     },
-  }) as unknown) as ObservableProxy<O>;
+  }) as unknown) as ObservableProxy<O, X>;
 }
 
 // Helper Operators
