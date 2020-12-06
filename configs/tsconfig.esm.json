@@ -1,7 +1,7 @@
 {
-    "extends": "./tsconfig.base.json",
-    "compilerOptions": {
-        "outDir": "../dist/esm"
-    },
-    "include": ["../src/index.ts"]
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../dist/esm"
+  },
+  "include": ["../src/index.ts"]
 }

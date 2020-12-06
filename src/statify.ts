@@ -1,6 +1,6 @@
-import { BehaviorSubject } from "rxjs";
-import { behaviorSubject } from "./behavior";
-import { BehaviorSubjectProxy } from "./core/types";
+import { BehaviorSubject } from 'rxjs';
+import { behaviorSubject } from './behavior';
+import { BehaviorSubjectProxy } from './core/types';
 
 export function statify<T>(o: T): BehaviorSubjectProxy<T> {
   return behaviorSubject(new BehaviorSubject(o), true);
@@ -16,7 +16,6 @@ export function statify<T>(o: T): BehaviorSubjectProxy<T> {
  *
  * via Symbol.toPrimitive
  */
-
 
 /**
  * TODO: consider implementing directly settings values

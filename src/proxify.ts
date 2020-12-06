@@ -1,8 +1,8 @@
-import { BehaviorSubject, isObservable, Observable, Subject } from "rxjs";
-import { behaviorSubject } from "./behavior";
-import { BehaviorSubjectProxy, ObservableProxy, SubjectProxy } from "./core/types";
-import { observable } from "./observable";
-import { subject } from "./subject";
+import { BehaviorSubject, isObservable, Observable, Subject } from 'rxjs';
+import { behaviorSubject } from './behavior';
+import { BehaviorSubjectProxy, ObservableProxy, SubjectProxy } from './core/types';
+import { observable } from './observable';
+import { subject } from './subject';
 
 export { BehaviorSubjectProxy, ObservableProxy, SubjectProxy };
 export function proxify<O>(source: BehaviorSubject<O>): BehaviorSubjectProxy<O>;
@@ -23,4 +23,3 @@ export function proxify<O>(source: Observable<O>) {
 
   throw 'Source should be Observable, Subject, or BehaviorSubject';
 }
-

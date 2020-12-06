@@ -1,15 +1,15 @@
 {
-    "compilerOptions": {
-        "declaration": true,
-        "outDir": "./dist/",
-        "noImplicitAny": false,
-        "noUnusedLocals": false,
-        "strictFunctionTypes": true,
-        "moduleResolution": "node",
-        "module": "commonjs",
-        "target": "es2015",
-        "sourceMap": true,
-        "downlevelIteration": false,
-        "lib": []
-    }
+  "compilerOptions": {
+    "declaration": true,
+    "outDir": "./dist/",
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "strictFunctionTypes": true,
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "target": "es2015",
+    "sourceMap": true,
+    "downlevelIteration": false,
+    "lib": []
+  }
 }

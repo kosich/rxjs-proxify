@@ -1,15 +1,15 @@
 {
-    "compilerOptions": {
-        "declaration": false,
-        "outDir": "../dist/",
-        "target": "es5",
-        "module": "es2015",
-        "moduleResolution": "node",
-        "importHelpers": false,
-        "downlevelIteration": false,
-        "noImplicitAny": false,
-        "noUnusedLocals": false,
-        "lib": ["es5"],
-        "types": ["node"]
-    }
+  "compilerOptions": {
+    "declaration": false,
+    "outDir": "../dist/",
+    "target": "es5",
+    "module": "es2015",
+    "moduleResolution": "node",
+    "importHelpers": false,
+    "downlevelIteration": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "lib": ["es5"],
+    "types": ["node"]
+  }
 }

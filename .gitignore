@@ -62,3 +62,6 @@ typings/
 
 # Output
 dist
+
+# Editor settings
+.vscode

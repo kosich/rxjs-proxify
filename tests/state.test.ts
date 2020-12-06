@@ -22,26 +22,26 @@ describe('State', () => {
 
     // listen to & log state changes
     sub = state.subscribe(observer);
-    expect(observer.next).toHaveBeenCalledWith({ a: '🐰', z: '🏡' })
+    expect(observer.next).toHaveBeenCalledWith({ a: '🐰', z: '🏡' });
 
     // update particular substate
     state.a.next('🐇');
-    expect(observer.next).toHaveBeenCalledWith({ a: '🐇', z: '🏡' })
+    expect(observer.next).toHaveBeenCalledWith({ a: '🐇', z: '🏡' });
 
     // update root state
-    state.next({ a: '🐇', z: '☁️' })
+    state.next({ a: '🐇', z: '☁️' });
     expect(observer.next).toHaveBeenCalledWith({ a: '🐇', z: '☁️' });
 
     // and then…
     state.z.next('🌙'); //> { a:🐇  z:🌙 }
     // TODO: TS does not supported yet
     // state.a += '👀';    //> { a:🐇👀 z:🌙 }
-    state.z.next('🛸')  //> { a:🐇👀 z:🛸 }
+    state.z.next('🛸'); //> { a:🐇👀 z:🛸 }
     state.a.next('💨'); //> { a:💨  z:🛸 }
 
     // read current values
     expect(state.a.value + state.z.getValue()).toBe('💨🛸');
-  })
+  });
 
   describe('skip repeated updates', () => {
     let state: BehaviorSubjectProxy<{ a: number }>;
@@ -66,5 +66,4 @@ describe('State', () => {
       expect(observer.next).not.toHaveBeenCalled();
     });
   });
-
 });

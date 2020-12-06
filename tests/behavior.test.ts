@@ -38,7 +38,7 @@ describe('Behavior', () => {
   });
 
   describe('Compound object', () => {
-    let state: BehaviorSubjectProxy<{ a: number, b: { c: string }, z: number[] }>;
+    let state: BehaviorSubjectProxy<{ a: number; b: { c: string }; z: number[] }>;
     let ao: TestObserver<unknown>;
     let bo: TestObserver<unknown>;
     let co: TestObserver<unknown>;
@@ -73,5 +73,4 @@ describe('Behavior', () => {
 
     // NOTE: state.z[1].next(…) will fail
   });
-
 });

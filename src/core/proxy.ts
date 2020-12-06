@@ -1,10 +1,15 @@
-import { Observable } from "rxjs";
-import { distinctUntilChanged, map } from "rxjs/operators";
-import { noop, OBSERVABLE_INSTANCE_PROP_KEYS } from "./shared";
-import { Key, ObservableProxy, Path } from "./types";
+import { Observable } from 'rxjs';
+import { distinctUntilChanged, map } from 'rxjs/operators';
+import { noop, OBSERVABLE_INSTANCE_PROP_KEYS } from './shared';
+import { Key, ObservableProxy, Path } from './types';
 
 // core api proxy
-export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps: Path, p: Key) => (() => any) | null, distinct?: boolean): ObservableProxy<O> {
+export function coreProxy<O>(
+  o: Observable<O>,
+  ps: Path = [],
+  getOverride?: (ps: Path, p: Key) => (() => any) | null,
+  distinct?: boolean,
+): ObservableProxy<O> {
   // we need to preserve property proxies, so that
   // ```ts
   // let o = of({ a: 42 });
@@ -31,7 +36,7 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps:
 
             // non-function or null values are skipped
             return f;
-          })
+          }),
         ),
       );
     },
@@ -53,7 +58,7 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps:
           // NOTE: we're binding .pipe, .subscribe, .lift, etc to current Source,
           // so that inner calls to `this` wont go through proxy again. This is
           // not equal to raw Rx where these fns are not bound
-          return (typeof builtIn == 'function') ? builtIn.bind(deepO) : builtIn;
+          return typeof builtIn == 'function' ? builtIn.bind(deepO) : builtIn;
         }
 
         // we should wrap piped observable into another proxy
@@ -68,12 +73,7 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps:
       }
 
       // return proxified sub-property
-      const subproxy = coreProxy<O[typeof p]>(
-        o as any,
-        ps.concat(p),
-        getOverride,
-        distinct
-      );
+      const subproxy = coreProxy<O[typeof p]>(o as any, ps.concat(p), getOverride, distinct);
 
       // cache, so that o.a.b == o.a.b
       proxyForPropertyCache.set(p, subproxy);
@@ -86,10 +86,8 @@ export function coreProxy<O>(o: Observable<O>, ps: Path = [], getOverride?: (ps:
 // distinct value if needed
 function maybeDistinct<T>(distinct: boolean) {
   return (o: Observable<T>) => {
-    return distinct
-      ? o.pipe(distinctUntilChanged<T>())
-      : o
-  }
+    return distinct ? o.pipe(distinctUntilChanged<T>()) : o;
+  };
 }
 
 // read deep value by path, bind if needed
@@ -121,7 +119,7 @@ function deepPluck<T>(ps: Path) {
         }
 
         return v;
-      })
+      }),
     );
   };
 }
