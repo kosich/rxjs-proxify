@@ -78,21 +78,31 @@ describe('State', () => {
       expect(state.a + 2).toBe(12);
     });
 
-    /**
-     * TODO: Figure out how to proxy [Symbol.iterator]
-     * Here's a clue: https://stackoverflow.com/questions/41046085/v8-es6-proxies-dont-support-iteration-protocol-when-targeting-custom-objects
-     *
-     * As well as proxying the symbol, we may have to manually
-     * proxy array props: 'length', '0', '1', ...
-     */
-    it.skip('Coerces to an array', () => {
+    it('Coerces to an array', () => {
       const state = statify({ a: [1, 2, 3] });
-      expect([...state.a, 4]).toBe([1, 2, 3, 4]);
+
+      const newArr = [...state.a, 4];
+
+      expect(newArr).toStrictEqual([1, 2, 3, 4]);
     });
 
-    it.skip('Use elements of an array', () => {
+    it('Coerces elements of an array', () => {
       const state = statify({ a: [1, 2, 3] });
-      expect(state.a[2]).toBe(3);
+      expect(+state.a[2]).toBe(3);
+    });
+
+    it('Coerces a date to a number', () => {
+      const date = new Date();
+      const state = statify({ a: date });
+      const coercedDate = new Date(state.a);
+      expect(coercedDate.valueOf()).toBe(date.valueOf());
+    });
+
+    it('Coerces a boolean', () => {
+      let state = statify({ a: true });
+      expect(+state.a).toBeTruthy();
+      state = statify({ a: false });
+      expect(+state.a).toBeFalsy();
     });
   });
 });

@@ -13,7 +13,18 @@ export function behaviorSubject<O>(source$: BehaviorSubject<O>, distinct?: boole
     const overrides = {
       value: readValue,
       getValue: () => readValue,
-      [Symbol.toPrimitive]: () => readValue,
+      [Symbol.toPrimitive]: () => () => {
+        const prop = readValue();
+        if (prop instanceof Date) return prop.valueOf();
+        return prop;
+      },
+      [Symbol.iterator]: () => {
+        return function* () {
+          for (let i = 0; i < readValue().length; i++) {
+            yield coreProxy(source$, ps.concat(i), getOverride, distinct);
+          }
+        };
+      },
       next: () => value => {
         if (!distinct || value !== readValue()) {
           setter(ps, value);
