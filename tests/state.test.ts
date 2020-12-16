@@ -104,5 +104,10 @@ describe('State', () => {
       state = statify({ a: false });
       expect(+state.a).toBeFalsy();
     });
+
+    it('Coerces when JSON.stringify called', () => {
+      const state = statify({ a: 2 });
+      expect(JSON.stringify(state)).toBe('{"a":2}');
+    });
   });
 });

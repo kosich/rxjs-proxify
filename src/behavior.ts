@@ -25,6 +25,7 @@ export function behaviorSubject<O>(source$: BehaviorSubject<O>, distinct?: boole
           }
         };
       },
+      toJSON: () => readValue,
       next: () => value => {
         if (!distinct || value !== readValue()) {
           setter(ps, value);
