@@ -66,4 +66,33 @@ describe('State', () => {
       expect(observer.next).not.toHaveBeenCalled();
     });
   });
+
+  describe('Coercable statify', () => {
+    it('Coerces to a string', () => {
+      const state = statify({ hello: 'Hello, ' });
+      expect(state.hello + 'world!').toBe('Hello, world!');
+    });
+
+    it('Coerces to a number', () => {
+      const state = statify({ a: 10 });
+      expect(state.a + 2).toBe(12);
+    });
+
+    /**
+     * TODO: Figure out how to proxy [Symbol.iterator]
+     * Here's a clue: https://stackoverflow.com/questions/41046085/v8-es6-proxies-dont-support-iteration-protocol-when-targeting-custom-objects
+     *
+     * As well as proxying the symbol, we may have to manually
+     * proxy array props: 'length', '0', '1', ...
+     */
+    it.skip('Coerces to an array', () => {
+      const state = statify({ a: [1, 2, 3] });
+      expect([...state.a, 4]).toBe([1, 2, 3, 4]);
+    });
+
+    it.skip('Use elements of an array', () => {
+      const state = statify({ a: [1, 2, 3] });
+      expect(state.a[2]).toBe(3);
+    });
+  });
 });

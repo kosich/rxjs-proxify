@@ -13,6 +13,7 @@ export function behaviorSubject<O>(source$: BehaviorSubject<O>, distinct?: boole
     const overrides = {
       value: readValue,
       getValue: () => readValue,
+      [Symbol.toPrimitive]: () => readValue,
       next: () => value => {
         if (!distinct || value !== readValue()) {
           setter(ps, value);
