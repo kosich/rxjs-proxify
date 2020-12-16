@@ -109,5 +109,17 @@ describe('State', () => {
       const state = statify({ a: 2 });
       expect(JSON.stringify(state)).toBe('{"a":2}');
     });
+
+    it('Coerces when spread', () => {
+      const state = statify({ a: 2 });
+      const newState = { ...state, b: 3 };
+      expect(+newState.a).toBe(2);
+    });
+
+    it('Coerces when Object.assign', () => {
+      const state = statify({ a: 2 });
+      const newState = Object.assign({}, state, { b: 3 });
+      expect(+newState.a).toBe(2);
+    });
   });
 });

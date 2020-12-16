@@ -1,4 +1,4 @@
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { coreProxy } from './core/proxy';
 import { BehaviorSubjectProxy, Key, Path } from './core/types';
 
@@ -21,7 +21,14 @@ export function behaviorSubject<O>(source$: BehaviorSubject<O>, distinct?: boole
       [Symbol.iterator]: () => {
         return function* () {
           for (let i = 0; i < readValue().length; i++) {
-            yield coreProxy(source$, ps.concat(i), getOverride, distinct);
+            yield coreProxy(
+              source$,
+              ps.concat(i),
+              getOverride,
+              ownKeysOverride,
+              getOwnPropertyDescriptorOverride,
+              distinct,
+            );
           }
         };
       },
@@ -38,7 +45,23 @@ export function behaviorSubject<O>(source$: BehaviorSubject<O>, distinct?: boole
     return overrides[p];
   };
 
-  return coreProxy(source$, [], getOverride, distinct) as BehaviorSubjectProxy<O>;
+  const ownKeysOverride = (ps: Path) => {
+    return [...Reflect.ownKeys(deepGetter(rootGetter)(ps)), 'prototype'];
+  };
+
+  const getOwnPropertyDescriptorOverride = (ps: Path, p: string | number | symbol) => {
+    if (p === 'prototype') return Reflect.getOwnPropertyDescriptor(Observable, 'prototype');
+    return Reflect.getOwnPropertyDescriptor(deepGetter(rootGetter)(ps), p);
+  };
+
+  return coreProxy(
+    source$,
+    [],
+    getOverride,
+    ownKeysOverride,
+    getOwnPropertyDescriptorOverride,
+    distinct,
+  ) as BehaviorSubjectProxy<O>;
 }
 
 // poor man's getter and setter
