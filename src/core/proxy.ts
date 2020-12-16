@@ -8,6 +8,8 @@ export function coreProxy<O>(
   o: Observable<O>,
   ps: Path = [],
   getOverride?: (ps: Path, p: Key) => (() => any) | null,
+  ownKeysOverride?: (ps: Path) => (string | number | symbol)[],
+  getOwnPropertyDescriptorOverride?: (ps: Path, p: string | number | symbol) => PropertyDescriptor,
   distinct?: boolean,
 ): ObservableProxy<O> {
   // we need to preserve property proxies, so that
@@ -73,11 +75,26 @@ export function coreProxy<O>(
       }
 
       // return proxified sub-property
-      const subproxy = coreProxy<O[typeof p]>(o as any, ps.concat(p), getOverride, distinct);
+      const subproxy = coreProxy<O[typeof p]>(
+        o as any,
+        ps.concat(p),
+        getOverride,
+        ownKeysOverride,
+        getOwnPropertyDescriptorOverride,
+        distinct,
+      );
 
       // cache, so that o.a.b == o.a.b
       proxyForPropertyCache.set(p, subproxy);
       return subproxy;
+    },
+    getOwnPropertyDescriptor(target, p) {
+      if (getOwnPropertyDescriptorOverride) return getOwnPropertyDescriptorOverride(ps, p);
+      return Reflect.getOwnPropertyDescriptor(target, p);
+    },
+    ownKeys(target) {
+      if (ownKeysOverride) return ownKeysOverride(ps);
+      return Reflect.ownKeys(target);
     },
   }) as unknown) as ObservableProxy<O>;
 }

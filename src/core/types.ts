@@ -20,7 +20,7 @@ export type BehaviorSubjectProxy<O> =
     O extends (...args: infer P) => infer R
     ? ICallableProxiedObservable<O, P, R>
     : IProxiedState<O>
-  );
+  ) & O;
 
 // helper to distinguish root types
 type TProxy<O, K extends ProxyKind> =
