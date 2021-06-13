@@ -135,6 +135,28 @@ describe('Proxify', () => {
     });
   });
 
+  describe('Types', () => {
+    // testing for splitting true/false in booleans
+    // see issue https://github.com/kosich/rxjs-proxify/issues/11
+    test('Boolean, property', () => {
+      let o = of({ a: true }, { a: false }, { a: true }, { a: false });
+      let p = proxify(o);
+      p.a.pipe(map(x => !x)).subscribe();
+      p.a
+        .pipe(map(x => !x))
+        .pipe(map(x => x))
+        .subscribe();
+    });
+
+    test('Boolean, callable', () => {
+      let o = of({ a: () => true }, { a: () => false }, { a: () => true });
+      let p = proxify(o);
+      p.a()
+        .pipe(map(x => x))
+        .subscribe();
+    });
+  });
+
   describe('Calls', () => {
     test('One level', () => {
       const o = of({ a: () => 1 }, { a: () => 2 }, { a: () => 3 });

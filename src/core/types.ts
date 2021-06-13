@@ -1,26 +1,20 @@
-import { Observable, Observer, OperatorFunction } from 'rxjs';
+import { Observable, Observer, Operator, OperatorFunction } from 'rxjs';
 
 // Proxy kinds {{{
 export type ObservableProxy<O> =
-  ValueProxy<O, ProxyKind.Observable> & (
-    O extends (...args: infer P) => infer R
-    ? ICallableProxiedObservable<O, P, R>
-    : IProxiedObservable<O>
-  );
+  ValueProxy<O, ProxyKind.Observable>
+  & IProxiedObservable<O>
+  & TMaybeCallableProxy<O>;
 
 export type SubjectProxy<O> =
-  ValueProxy<O, ProxyKind.Observable> & (
-    O extends (...args: infer P) => infer R
-    ? ICallableProxiedObservable<O, P, R>
-    : IProxiedSubject<O>
-  );
+  ValueProxy<O, ProxyKind.Observable>
+  & IProxiedSubject<O>
+  & TMaybeCallableProxy<O>;
 
 export type BehaviorSubjectProxy<O> =
-  ValueProxy<O, ProxyKind.State> & (
-    O extends (...args: infer P) => infer R
-    ? ICallableProxiedObservable<O, P, R>
-    : IProxiedState<O>
-  );
+  ValueProxy<O, ProxyKind.State>
+  & IProxiedState<O>
+  & TMaybeCallableProxy<O>;
 
 // helper to distinguish root types
 type TProxy<O, K extends ProxyKind> =
@@ -58,11 +52,16 @@ type ValueProxy<O, K extends ProxyKind> =
   // any object
   : { [P in keyof O]: TProxy<O[P], K> };
 
-// Callable Proxied Observable
+// Callable Proxies
+type TMaybeCallableProxy<O> = 
+    O extends BasicFn
+    ? ICallableProxy<O>
+    : {};
+
 type BasicFn = (...args: any[]) => any;
 
-interface ICallableProxiedObservable<F extends BasicFn, P1 extends any[], R1> extends IProxiedObservable<F> {
-  (...args: P1): ObservableProxy<R1>;
+interface ICallableProxy<F extends BasicFn> {
+  (...args: Parameters<F>): ObservableProxy<ReturnType<F>>;
 }
 
 // State API
